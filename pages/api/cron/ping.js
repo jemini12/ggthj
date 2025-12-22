@@ -13,6 +13,12 @@ export default async function handler(req, res) {
   const base = host.startsWith("http") ? host : `https://${host}`;
   const targets = cities.map((c) => `/${c.code}`);
   const started = Date.now();
+
+  if (req.query.dry === "1" || req.query.dry === "true") {
+    log("cron.ping.dry", { targets });
+    res.status(200).json({ ok: true, dryRun: true, targets });
+    return;
+  }
   const results = [];
 
   for (const path of targets) {
