@@ -344,6 +344,12 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
     return "정상";
   }, [loading, error]);
 
+  const summaryLoading = useMemo(() => {
+    if (!city) return false;
+    if (loading || dealLoading || offerLoading) return true;
+    return false;
+  }, [city, loading, dealLoading, offerLoading]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100">
       <div className="mx-auto max-w-6xl px-4 py-10">
@@ -459,7 +465,10 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
                       })
                       .catch(() => {});
                 }}
+                disabled={summaryLoading}
                 className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-xs shadow-sm transition hover:border-blue-300 hover:text-blue-600 ${
+                  summaryLoading ? "cursor-not-allowed opacity-60" : ""
+                } ${
                   copied
                     ? "border-blue-300 bg-blue-50 text-blue-700 ring-2 ring-blue-200"
                     : "border-slate-200 bg-white text-slate-700"
@@ -471,11 +480,18 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
                 복사
               </button>
             </div>
-            <div className="space-y-1 text-sm text-slate-700">
-              {summaryLines.map((line, idx) => (
-                <div key={idx}>{line}</div>
-              ))}
-            </div>
+            {summaryLoading ? (
+              <div className="flex items-center gap-2 rounded-lg border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                <Spinner />
+                불러오는 중…
+              </div>
+            ) : (
+              <div className="space-y-1 text-sm text-slate-700">
+                {summaryLines.map((line, idx) => (
+                  <div key={idx}>{line}</div>
+                ))}
+              </div>
+            )}
           </div>
         ) : null}
 

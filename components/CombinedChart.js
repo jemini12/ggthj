@@ -5,6 +5,24 @@ function parseDate(ymd) {
   return new Date(Date.UTC(y, m - 1, d));
 }
 
+function niceTicks(maxValue, desired = 4) {
+  if (!isFinite(maxValue) || maxValue <= 0) return [0];
+  const raw = maxValue / desired;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw / mag;
+  let step;
+  if (norm < 1.5) step = 1 * mag;
+  else if (norm < 3) step = 2 * mag;
+  else if (norm < 7) step = 5 * mag;
+  else step = 10 * mag;
+  const niceMax = Math.ceil(maxValue / step) * step;
+  const ticks = [];
+  for (let v = 0; v <= niceMax + 1e-9; v += step) {
+    ticks.push(Math.round(v));
+  }
+  return ticks;
+}
+
 function formatInt(n) {
   return new Intl.NumberFormat("ko-KR").format(n);
 }
@@ -55,20 +73,11 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
         })
       : [];
 
-    const countTicks = [];
-    const countTickCount = 4;
-    for (let t = 0; t <= countTickCount; t++) {
-      const v = Math.round((maxCount * t) / countTickCount);
-      countTicks.push(v);
-    }
+    const countTicks = niceTicks(maxCount, 4);
 
     const cumTicks = [];
     if (showCumsum && linePoints.length) {
-      const cumTickCount = 4;
-      for (let t = 0; t <= cumTickCount; t++) {
-        const v = Math.round((maxCum * t) / cumTickCount);
-        cumTicks.push(v);
-      }
+      niceTicks(maxCum, 4).forEach((v) => cumTicks.push(v));
     }
 
     const xTicks = [];
@@ -108,7 +117,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
           const y = topPad + (height - topPad - bottomPad) * (1 - v / Math.max(1, maxCount));
           return (
             <g key={`count-${idx}`}>
-              <line x1={topPad} x2={width - topPad} y1={y} y2={y} stroke="rgba(15,23,42,0.08)" />
+              <line x1={topPad} x2={effectiveWidth - topPad} y1={y} y2={y} stroke="rgba(15,23,42,0.08)" />
               <text x={topPad - 10} y={y + 4} textAnchor="end" fontSize="11" fill="rgba(15,23,42,0.7)">
                 {formatInt(v)}
               </text>
@@ -121,7 +130,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
           return (
             <text
               key={`cum-${idx}`}
-              x={width - topPad + 8}
+              x={effectiveWidth - topPad + 8}
               y={y + 4}
               textAnchor="start"
               fontSize="11"
@@ -132,11 +141,8 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
           );
         })}
 
-        <line x1={topPad} x2={topPad} y1={topPad} y2={height - bottomPad} stroke="rgba(15,23,42,0.2)" />
-        {showCumsum && linePoints.length ? (
-          <line x1={width - topPad} x2={width - topPad} y1={topPad} y2={height - bottomPad} stroke="rgba(234,88,12,0.4)" />
-        ) : null}
-        <line x1={topPad} x2={width - topPad} y1={height - bottomPad} y2={height - bottomPad} stroke="rgba(15,23,42,0.2)" />
+        {/* y-axis lines removed to reduce visual clutter */}
+        <line x1={topPad} x2={effectiveWidth - topPad} y1={height - bottomPad} y2={height - bottomPad} stroke="rgba(15,23,42,0.2)" />
 
         {/* bars */}
         {bars.map((b, i) => (
@@ -196,7 +202,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
         {hover && showCumsum ? (
           <g>
             <rect
-              x={Math.min(width - pad - 230, Math.max(pad, hover.x + 10))}
+              x={Math.min(effectiveWidth - pad - 230, Math.max(pad, hover.x + 10))}
               y={pad + 6}
               width="220"
               height="64"
@@ -205,7 +211,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
               stroke="rgba(255,255,255,0.08)"
             />
             <text
-              x={Math.min(width - pad - 220, Math.max(pad + 12, hover.x + 22))}
+              x={Math.min(effectiveWidth - pad - 220, Math.max(pad + 12, hover.x + 22))}
               y={pad + 28}
               fontSize="12"
               fill="#e5e7eb"
@@ -213,7 +219,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
               {hover.date}
             </text>
             <text
-              x={Math.min(width - pad - 220, Math.max(pad + 12, hover.x + 22))}
+              x={Math.min(effectiveWidth - pad - 220, Math.max(pad + 12, hover.x + 22))}
               y={pad + 48}
               fontSize="12"
               fill="#e5e7eb"

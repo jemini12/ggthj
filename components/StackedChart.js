@@ -4,16 +4,35 @@ function formatInt(n) {
   return new Intl.NumberFormat("ko-KR").format(n);
 }
 
+function niceTicks(maxValue, desired = 4) {
+  if (!isFinite(maxValue) || maxValue <= 0) return [0];
+  const raw = maxValue / desired;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw / mag;
+  let step;
+  if (norm < 1.5) step = 1 * mag;
+  else if (norm < 3) step = 2 * mag;
+  else if (norm < 7) step = 5 * mag;
+  else step = 10 * mag;
+  const niceMax = Math.ceil(maxValue / step) * step;
+  const ticks = [];
+  for (let v = 0; v <= niceMax + 1e-9; v += step) {
+    ticks.push(Math.round(v));
+  }
+  return ticks;
+}
+
 export default function StackedChart({ series, width = 1000, height = 380, pad = 52 }) {
   // series: [{ label, color, points: [{date, count}]}]
   const [hover, setHover] = useState(null);
   const topPad = pad;
   const bottomPad = pad + 16;
+  const effectiveWidth = useMemo(() => Math.max(width, 720), [width]);
 
   const { bars, xTicks, maxTotal } = useMemo(() => {
     if (!series || !series.length) return { bars: [], xTicks: [], maxTotal: 0 };
     const dates = series[0].points.map((p) => p.date);
-    const plotW = width - topPad * 2;
+    const plotW = effectiveWidth - topPad * 2;
     const plotH = height - topPad - bottomPad;
     const barW = dates.length ? plotW / dates.length : plotW;
 
@@ -48,26 +67,26 @@ export default function StackedChart({ series, width = 1000, height = 380, pad =
     });
 
     return { bars: bars.flat(), xTicks, maxTotal };
-  }, [series, width, height, pad, topPad, bottomPad]);
+  }, [series, effectiveWidth, height, pad, topPad, bottomPad]);
 
   const hoverBar = hover != null ? bars[hover] : null;
 
   return (
     <div className="w-full overflow-x-auto">
       <svg
-        viewBox={`0 0 ${width} ${height}`}
-        width={width}
+        viewBox={`0 0 ${effectiveWidth} ${height}`}
+        width={effectiveWidth}
         height={height}
         className="block"
-        style={{ minWidth: 720 }}
+        style={{ minWidth: effectiveWidth }}
       >
-        <rect x="0" y="0" width={width} height={height} fill="#ffffff" />
+        <rect x="0" y="0" width={effectiveWidth} height={height} fill="#ffffff" />
 
-        {[0.25, 0.5, 0.75, 1].map((v, idx) => {
-          const y = topPad + (height - topPad - bottomPad) * (1 - v);
+        {niceTicks(maxTotal, 4).map((tick, idx, arr) => {
+          const y = topPad + (height - topPad - bottomPad) * (1 - tick / Math.max(1, arr[arr.length - 1]));
           return (
             <g key={idx}>
-              <line x1={topPad} x2={width - topPad} y1={y} y2={y} stroke="rgba(15,23,42,0.08)" />
+              <line x1={topPad} x2={effectiveWidth - topPad} y1={y} y2={y} stroke="rgba(15,23,42,0.08)" />
               <text
                 x={topPad - 10}
                 y={y + 4}
@@ -75,14 +94,14 @@ export default function StackedChart({ series, width = 1000, height = 380, pad =
                 fontSize="11"
                 fill="rgba(15,23,42,0.6)"
               >
-                {formatInt(Math.round(maxTotal * v))}
+                {formatInt(tick)}
               </text>
             </g>
           );
         })}
 
         <line x1={topPad} x2={topPad} y1={topPad} y2={height - bottomPad} stroke="rgba(15,23,42,0.2)" />
-        <line x1={topPad} x2={width - topPad} y1={height - bottomPad} y2={height - bottomPad} stroke="rgba(15,23,42,0.2)" />
+        <line x1={topPad} x2={effectiveWidth - topPad} y1={height - bottomPad} y2={height - bottomPad} stroke="rgba(15,23,42,0.2)" />
 
         {bars.map((b, i) => (
           <rect
@@ -116,7 +135,7 @@ export default function StackedChart({ series, width = 1000, height = 380, pad =
         {hoverBar ? (
           <g>
             <rect
-              x={Math.min(width - pad - 230, Math.max(pad, hoverBar.x + 10))}
+              x={Math.min(effectiveWidth - pad - 230, Math.max(pad, hoverBar.x + 10))}
               y={pad + 6}
               width="220"
               height="74"
@@ -125,7 +144,7 @@ export default function StackedChart({ series, width = 1000, height = 380, pad =
               stroke="rgba(255,255,255,0.08)"
             />
             <text
-              x={Math.min(width - pad - 220, Math.max(pad + 12, hoverBar.x + 22))}
+              x={Math.min(effectiveWidth - pad - 220, Math.max(pad + 12, hoverBar.x + 22))}
               y={pad + 28}
               fontSize="12"
               fill="#e5e7eb"
@@ -133,7 +152,7 @@ export default function StackedChart({ series, width = 1000, height = 380, pad =
               {hoverBar.date}
             </text>
             <text
-              x={Math.min(width - pad - 220, Math.max(pad + 12, hoverBar.x + 22))}
+              x={Math.min(effectiveWidth - pad - 220, Math.max(pad + 12, hoverBar.x + 22))}
               y={pad + 48}
               fontSize="12"
               fill="#e5e7eb"
