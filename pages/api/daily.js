@@ -3,7 +3,7 @@ const { refreshCityFull } = require("../../lib/refreshCity");
 
 function log(event, payload) {
   try {
-    console.log(JSON.stringify({ event, ...payload }));
+    console.log(JSON.stringify({ level: "info", event, ...payload }));
   } catch (_) {
     console.log(event, payload);
   }

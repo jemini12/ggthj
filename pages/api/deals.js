@@ -40,6 +40,7 @@ export default async function handler(req, res) {
   const cacheKey = JSON.stringify({ searchYear, gubun, bdsGbn, sggCd });
   const cached = getCache(cacheKey);
   if (cached) {
+    console.log(JSON.stringify({ level: "info", event: "deals.cache.hit", params: { searchYear, gubun, bdsGbn, sggCd } }));
     res.status(200).json(cached);
     return;
   }
@@ -59,6 +60,7 @@ export default async function handler(req, res) {
   };
   setCache(cacheKey, payload);
 
+  console.log(JSON.stringify({ level: "info", event: "deals.cache.miss", params: { searchYear, gubun, bdsGbn, sggCd } }));
   res.status(200).json(payload);
   } catch (err) {
     const msg = err && err.message ? err.message : String(err);

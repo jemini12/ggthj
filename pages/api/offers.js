@@ -45,6 +45,7 @@ export default async function handler(req, res) {
     const cacheKey = JSON.stringify({ area, deal, mode, sY, sM, eY, eM });
     const cached = getCache(cacheKey);
     if (cached) {
+      console.log(JSON.stringify({ level: "info", event: "offers.cache.hit", params: { area, deal, mode, sY, sM, eY, eM } }));
       res.status(200).json(cached);
       return;
     }
@@ -55,6 +56,7 @@ export default async function handler(req, res) {
       points: data.points,
     };
     setCache(cacheKey, payload);
+    console.log(JSON.stringify({ level: "info", event: "offers.cache.miss", params: { area, deal, mode, sY, sM, eY, eM } }));
     res.status(200).json(payload);
   } catch (err) {
     const msg = err && err.message ? err.message : String(err);
