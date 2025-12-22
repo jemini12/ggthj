@@ -9,39 +9,46 @@ function formatInt(n) {
   return new Intl.NumberFormat("ko-KR").format(n);
 }
 
-export default function CombinedChart({ points, width = 1000, height = 380, pad = 52 }) {
+export default function CombinedChart({ points, width = 1000, height = 380, pad = 52, showCumsum = true }) {
   const [hoverIdx, setHoverIdx] = useState(null);
+  const topPad = pad;
+  const bottomPad = pad + 16;
 
   const { bars, linePoints, countTicks, cumTicks, xTicks, maxCount, maxCum } = useMemo(() => {
     if (!points || points.length === 0) {
       return { bars: [], linePoints: [], countTicks: [], cumTicks: [], xTicks: [], maxCount: 0, maxCum: 0 };
     }
 
-    const plotW = width - pad * 2;
-    const plotH = height - pad * 2;
+    const plotW = width - topPad * 2;
+    const plotH = height - topPad - bottomPad;
     const counts = points.map((p) => p.count || 0);
     const maxCount = Math.max(...counts, 1);
     const cumsum = [];
-    let running = 0;
-    for (const p of points) {
-      running += p.count || 0;
-      cumsum.push({ date: p.date, total: running });
+    let maxCum = 0;
+    if (showCumsum) {
+      let running = 0;
+      for (const p of points) {
+        running += p.count || 0;
+        cumsum.push({ date: p.date, total: running });
+      }
+      maxCum = Math.max(...cumsum.map((p) => p.total), 1);
     }
-    const maxCum = Math.max(...cumsum.map((p) => p.total), 1);
 
     const barW = points.length ? plotW / points.length : plotW;
     const bars = points.map((p, i) => {
-      const x = pad + i * barW;
+      const x = topPad + i * barW;
       const h = (plotH * p.count) / Math.max(1, maxCount);
-      const y = pad + (plotH - h);
+      const y = topPad + (plotH - h);
       return { ...p, x, y, w: Math.max(1, barW - 1), h };
     });
 
-    const linePoints = cumsum.map((p, i) => {
-      const x = pad + (points.length === 1 ? plotW / 2 : (plotW / (points.length - 1)) * i);
-      const y = pad + plotH * (1 - p.total / Math.max(1, maxCum));
-      return { ...p, x, y };
-    });
+    const linePoints = showCumsum
+      ? cumsum.map((p, i) => {
+          const x = topPad + (points.length === 1 ? plotW / 2 : (plotW / (points.length - 1)) * i);
+          const y = topPad + plotH * (1 - p.total / Math.max(1, maxCum));
+          return { ...p, x, y };
+        })
+      : [];
 
     const countTicks = [];
     const countTickCount = 4;
@@ -51,10 +58,12 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
     }
 
     const cumTicks = [];
-    const cumTickCount = 4;
-    for (let t = 0; t <= cumTickCount; t++) {
-      const v = Math.round((maxCum * t) / cumTickCount);
-      cumTicks.push(v);
+    if (showCumsum && linePoints.length) {
+      const cumTickCount = 4;
+      for (let t = 0; t <= cumTickCount; t++) {
+        const v = Math.round((maxCum * t) / cumTickCount);
+        cumTicks.push(v);
+      }
     }
 
     const xTicks = [];
@@ -74,7 +83,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
     });
 
     return { bars, linePoints, countTicks, cumTicks, xTicks, maxCount, maxCum };
-  }, [points, width, height, pad]);
+  }, [points, width, height, pad, showCumsum]);
 
   const hover = hoverIdx != null ? bars[hoverIdx] : null;
 
@@ -85,23 +94,23 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
 
         {/* grid + axes */}
         {countTicks.map((v, idx) => {
-          const y = pad + (height - pad * 2) * (1 - v / Math.max(1, maxCount));
+          const y = topPad + (height - topPad - bottomPad) * (1 - v / Math.max(1, maxCount));
           return (
             <g key={`count-${idx}`}>
-              <line x1={pad} x2={width - pad} y1={y} y2={y} stroke="rgba(15,23,42,0.08)" />
-              <text x={pad - 10} y={y + 4} textAnchor="end" fontSize="11" fill="rgba(15,23,42,0.7)">
+              <line x1={topPad} x2={width - topPad} y1={y} y2={y} stroke="rgba(15,23,42,0.08)" />
+              <text x={topPad - 10} y={y + 4} textAnchor="end" fontSize="11" fill="rgba(15,23,42,0.7)">
                 {formatInt(v)}
               </text>
             </g>
           );
         })}
 
-        {cumTicks.map((v, idx) => {
-          const y = pad + (height - pad * 2) * (1 - v / Math.max(1, maxCum));
+        {showCumsum && cumTicks.map((v, idx) => {
+          const y = topPad + (height - topPad - bottomPad) * (1 - v / Math.max(1, maxCum));
           return (
             <text
               key={`cum-${idx}`}
-              x={width - pad + 8}
+              x={width - topPad + 8}
               y={y + 4}
               textAnchor="start"
               fontSize="11"
@@ -112,9 +121,11 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
           );
         })}
 
-        <line x1={pad} x2={pad} y1={pad} y2={height - pad} stroke="rgba(15,23,42,0.2)" />
-        <line x1={width - pad} x2={width - pad} y1={pad} y2={height - pad} stroke="rgba(234,88,12,0.4)" />
-        <line x1={pad} x2={width - pad} y1={height - pad} y2={height - pad} stroke="rgba(15,23,42,0.2)" />
+        <line x1={topPad} x2={topPad} y1={topPad} y2={height - bottomPad} stroke="rgba(15,23,42,0.2)" />
+        {showCumsum && linePoints.length ? (
+          <line x1={width - topPad} x2={width - topPad} y1={topPad} y2={height - bottomPad} stroke="rgba(234,88,12,0.4)" />
+        ) : null}
+        <line x1={topPad} x2={width - topPad} y1={height - bottomPad} y2={height - bottomPad} stroke="rgba(15,23,42,0.2)" />
 
         {/* bars */}
         {bars.map((b, i) => (
@@ -132,7 +143,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
         ))}
 
         {/* cumulative line */}
-        {linePoints.length ? (
+        {showCumsum && linePoints.length ? (
           <path
             d={linePoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ")}
             fill="none"
@@ -142,21 +153,22 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
           />
         ) : null}
 
-        {linePoints.map((p, i) => (
-          <circle
-            key={p.date + i}
-            cx={p.x}
-            cy={p.y}
-            r={i === hoverIdx ? 5 : 3}
-            fill={i === hoverIdx ? "#3b82f6" : "#ea580c"}
-            stroke="rgba(15,23,42,0.25)"
-            strokeWidth="1"
-          />
-        ))}
+        {showCumsum &&
+          linePoints.map((p, i) => (
+            <circle
+              key={p.date + i}
+              cx={p.x}
+              cy={p.y}
+              r={i === hoverIdx ? 5 : 3}
+              fill={i === hoverIdx ? "#3b82f6" : "#ea580c"}
+              stroke="rgba(15,23,42,0.25)"
+              strokeWidth="1"
+            />
+          ))}
 
         {/* x ticks */}
         {xTicks.map((t, idx) => (
-          <g key={idx} transform={`translate(${t.x},${height - pad})`}>
+          <g key={idx} transform={`translate(${t.x},${height - bottomPad})`}>
             <line y1="0" y2="6" stroke="rgba(15,23,42,0.25)" />
             <text
               y="18"
@@ -170,7 +182,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
           </g>
         ))}
 
-        {hover ? (
+        {hover && showCumsum ? (
           <g>
             <rect
               x={Math.min(width - pad - 230, Math.max(pad, hover.x + 10))}

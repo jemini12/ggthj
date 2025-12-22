@@ -42,7 +42,7 @@ export default async function handler(req, res) {
   const from =
     parseDateParam(req.query.from) ||
     parseDateParam(process.env.BACKFILL_FROM) ||
-    new Date("2025-10-15T00:00:00Z");
+    new Date("2025-10-20T00:00:00Z");
   const to = parseDateParam(req.query.to) || new Date(`${yesterdayUtcYmd()}T00:00:00Z`);
   const fromYmd = toYmd(from);
   const toYmdStr = toYmd(to);

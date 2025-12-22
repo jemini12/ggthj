@@ -1,0 +1,2075 @@
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="ko">
+	
+	<head>
+		<meta charset="utf-8">
+<!-- 		<meta name="viewport" content="width=750px"> -->
+		<meta id="viewport" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="format-detection" content="telephone=no">
+	
+		<title>경기부동산포털</title>
+		<script src="/pdf/build/pdf.js"></script>
+		<script src="/pdf/web/viewer.js"></script>
+		
+		<script src="/js/gris/cmm/clipboard.min.js"></script>
+		
+		<script src="/js/gris/cmm/jquery/jquery-1.12.4.min.js"></script>
+		<script src="/js/gris/cmm/jquery/jquery-ui.min.js"></script>
+		<script src="/js/gris/cmm/jquery/jquery.tmpl.js"></script>
+		<script src="/js/gris/cmm/jquery/jquery.mCustomScrollbar.js"></script>
+		<script src="/js/gris/cmm/jquery/jquery.bxslider.min.js"></script>
+		<script src="/js/gris/cmm/jquery/i18n/grid.locale-kr.js"></script>
+		<script src="/js/gris/cmm/jquery/jquery.jqGrid.min.js"></script>
+		<script src="/js/gris/cmm/login/naverLogin_implicit-1.0.3-min.js"></script>
+		<script src="/js/gris/cmm/login/kakao.min.js"></script>
+		
+		<script src="/js/gris/cmm/common.js?v=1.6"></script>
+		<script src="/js/gris/cmm/grisUtils.js?v=1.0"></script>
+		
+		<link rel="stylesheet"  href="/css/gris/cmm/jquery/jquery-ui.min.css">
+		
+		<!-- 경기도 ICO 로고 -->		
+		<link rel="shortcut icon" href="/images/gris/common/logo/icon.png" />	
+		
+		<link rel="apple-touch-icon-precomposed" href="/images/gris/common/logo/icon114x114.png">
+	
+		<link rel="stylesheet" href="/css/gris/cmm/reset.css?v=1.0">
+		<link rel="stylesheet" href="/css/gris/cmm/font.css?v=1.0">
+		<link rel="stylesheet" href="/css/gris/cmm/common.css?v=1.15">
+		<link rel="stylesheet" href="/css/gris/cmm/jquery/jquery.mCustomScrollbar.css">
+		<link rel="stylesheet" type="text/css" href="/css/gris/cmm/jquery/jquery-ui.min.css">
+		<!-- <link rel="stylesheet" type="text/css" href="/css/gris/cmm/jquery/1.11.4/jquery-ui.theme.min.css">	-->
+		<link rel="stylesheet" type="text/css" href="/css/gris/cmm/jquery/ui.jqgrid.css">
+		<style >
+				a.only-pc {display: inline-block;}
+				a.only-mobile {display: none;}
+				
+				@media screen and (max-width: 1399px) {
+					a.only-pc {display: none;}
+					a.only-mobile {display: inline-block;}
+				}
+				
+				#searchApiResult {display: block;}
+				#searchApiResult2 {display: none;}
+				
+				@media screen and (max-width: 1399px) {
+					#searchApiResult {display: none;}
+					#searchApiResult2 {display: block;}
+				}
+				
+				p.only-pc {display: inline-block;}
+				p.only-mobile {display: none;}
+				
+				@media screen and (max-width: 1399px) {
+					p.only-pc {display: none;}
+					p.only-mobile {display: inline-block;}
+				}
+				
+				/* #ife
+				{ 
+					overflow:hidden;
+				 } */
+				
+				ul.tabs {
+			    margin: 0;
+			    padding: 0;
+			    float: left;
+			    list-style: none;
+			    height: 41px;
+			    border-bottom: 1px solid navy;
+			    border-left: 1px solid #eee;
+			    width: 100%;
+			    font-family:"dotum";
+			    font-size:13px;
+			    padding-top: 10px;
+			}
+			
+			ul.tabs li{
+			    float: left;
+			    text-align:center;
+			    cursor: pointer;
+			    width: 14.1%;
+			    height: 40px; 
+			    line-height: 40px; 
+			    border: 1px solid #eee;
+			    border-left: none;
+			    font-weight: bold;
+			    background: #FFFFFF;
+			    border:1px solid #DAD9FF;
+			     border-bottom: 1px solid navy;
+			    overflow: hidden;
+			    position: relative;
+			}
+			ul.tabs li.active{ 
+			    background: navy;
+			    color:white;	    
+			}
+			
+			ul.tabs li.active a {
+				color: #FFFFFF;
+			}
+			
+			#boxes {width:100%; background: url(/images/gris/common/bgOpacity.png) ;}
+			#mask {position:absolute; left:0; top:0; width:100%; height:1367px; z-index:9000; background: url(/images/gris/common/bgOpacity.png); display:block;}
+			#boxes .window {position:absolute; left:40%; top:400px; width:380px; display:block; z-index:9999;padding:20px 0; text-align:center; background:#fff;}
+			#boxes .window p {font-size:21px; font-weight:600; text-align:center; color:#256ca1; line-height:1.2;}
+			#boxes .window div {padding:35px 0 0 0;}
+			#boxes .window span {font-family:돋움, Dotum; color:#333; font-weight:bold; margin-right:20px;}
+			#boxes .window input[type="password"] {font-family:돋움, Dotum; border: solid 1px #ddd; border-radius:2px; vertical-align: middle; font-size: 11px; color: #333; padding: 8px 8px 7px;}
+			#boxes .window a.button {width: 90px; font-family:돋움, Dotum; margin-left: 10px; padding:12px 0 9px 0; background: #666; text-align: center; color: #fff; border-radius:3px;}
+			#boxes .window a.button.black {background: #333;}
+			#boxes .window a.button:first-child {margin-left: 0;}
+				
+			</style>
+		<!-- 임시 CSS -->
+		<style>
+			input[type="number"]::-webkit-outer-spin-button,
+			input[type="number"]::-webkit-inner-spin-button {
+			    -webkit-appearance: none;
+			    margin: 0;
+			}
+		</style>
+		
+		<!-- 프로그래스 로딩 CSS -->
+		<style>
+			
+			#loadingBar {
+			 width: 100%;   
+			 height: 100%;   
+			 top: 0px;
+			 left: 0px;
+			 position: fixed;   
+			 display: block;
+			 opacity: 0.5;
+			 -moz-opacity:0.5;
+			 background-color: #fff;
+			 filter:alpha(opacity=50); 
+			 z-index: 99999;   
+			 text-align: center; }  
+			 
+			#loading-image {   
+			 position: absolute;   
+			 top: 50%;
+			 left: 50%;
+			 z-index: 100000; }
+			
+			#customLoading {
+				width: 100%;   
+				height: 100%;
+				top: 0px;
+				left: 0px;
+				position: fixed;   
+				display: none;
+				background : rgba(255,255,255,0.3);
+				-moz-opacity:0.5;
+				filter:alpha(opacity=50); 
+				z-index: 99999;   
+				text-align: center;
+			}
+			
+			#customLoadingBackground {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				height : 110px;
+				width : 500px;
+				margin-top: -46px;
+				margin-left: -250px;
+				z-index: 100000;
+				border: solid 4px rgb(51, 125, 239);
+				background-color: white;
+				text-align: center;
+			}
+			 @media screen and (max-width: 978px) {
+				#customLoadingBackground {
+					height : 125px;
+				}
+				
+			}
+			#customLoadingImage {
+				margin-top: 13px;
+				height : 25px;
+			}
+			customLoadingImageBottom {
+				height : 43px;
+			}
+		</style>
+		
+		<script>
+			// <![CDATA[			
+			window.onload = function(){ 
+				try{
+					
+					document.title = jQuery(".page-title").text();
+					
+					var filter = "win16|win32|win64|mac|macintel";
+					
+					if (deviceSe == "MOBILE") {
+						//MOBILE
+						//alert("모바일");
+						jQuery('[class*=only-mobile-hide]').hide();
+					}else {
+						//PC
+						//alert("PC");
+					}
+					
+					closeProgress();
+					
+				}catch(e){console.log("closeProgress error");} 
+			}
+			//]]>
+		</script>
+		
+		<!-- Global site tag (gtag.js) - Google Analytics -->
+<!-- 		<script async src="https://www.googletagmanager.com/gtag/js?id=G-MN1SDDDMMK"></script> -->
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'G-MN1SDDDMMK');
+		</script>
+	</head>
+ 	
+	<body id="contentsBody">
+		<div id="skip">
+			<a href="#content">본문 바로가기</a>
+		</div>
+	
+		<div id="loadingBar">
+			<div>
+				<img id="loading-image" src="/images/gris/common/viewLoading.gif" alt="로딩이미지"/>
+			</div>
+		</div>
+		<div id="customLoading">
+			<div id="customLoadingBackground">
+				<img id="customLoadingImage" src="/images/gris/header/logo.png" alt="경기도로고">
+				<div>
+					<b id="customLoadingText"></b>
+				</div>
+				<img id="customLoadingImageBottom" src="/images/gris/header/loading.gif" alt="로딩이미지">
+			</div>
+		</div>
+		
+		
+
+
+
+
+
+
+
+
+
+<script src="/js/gris/cmm/clipboard.min.js"></script>
+<script src="/js/gris/cmm/md/mobile-detect.min.js"></script>
+
+<script>
+//모바일, PC구분
+var deviceSe = "MOBILE";
+
+var md = new MobileDetect(navigator.userAgent);
+if(md.tablet() != null && md.tablet() != "null"){
+	deviceSe = "TABLET";
+}else if(md.mobile() != null && md.mobile() != "null"){
+	deviceSe = "MOBILE";
+	$('body').addClass('mobile');
+	if(location.href.indexOf("/map/main/grisMapView.do")){
+		$("#viewport").attr("content","width=750px");
+	}
+}else{
+	deviceSe = "PC";
+}
+
+$(document).on('ready', function() {
+	var userId = "";
+
+	if(userId != null & userId != ""){						
+		var mypageHeader = "<li><a href='/map/main/grisMapView.do?contentId=ui-cont-add-4-id'>마이페이지</a></li>";
+		jQuery('header .gnb').append(mypageHeader);
+		jQuery('header .gnb').addClass("unit6");
+		
+	}else{
+		jQuery('header .gnb').removeClass("unit6");	
+	}
+	
+	var filter = "win16|win32|win64|mac|macintel";
+// 	if(navigator.platform){
+// 		if(filter.indexOf(navigator.platform.toLowerCase()) < 0){
+// 			//모바일 접속
+// 			deviceSe = "MOBILE";
+// 		}else{
+// 			//pc 접속
+// 			deviceSe = "PC";
+// 		}
+// 	}
+// 	var md = new MobileDetect(navigator.userAgent);
+// 	if(md.tablet() != null && md.tablet() != "null"){
+// 		deviceSe = "TABLET";
+// 	}else if(md.mobile() != null && md.mobile() != "null"){
+// 		deviceSe = "MOBILE";
+// 		$('body').addClass('mobile');
+// 		if(curUrl.indexOf("/map/main/grisMapView.do") == -1){
+// 			$("#viewport").attr("content","width=750px")
+// 		}
+// 		$(document).ready(function () {
+// 			$('body').addClass('mobile');
+// 		});
+// 	}else{
+// 		deviceSe = "PC";
+// 	}
+// 	if(navigator.platform){
+// 		if(filter.indexOf(navigator.platform.toLowerCase()) < 0){
+// 			if(navigator.userAgent.toLowerCase().indexOf("ipad") > -1
+// 			|| (navigator.userAgent.toLowerCase().indexOf("andriod") > -1 && navigator.userAgent.toLowerCase().indexOf("mobile") == -1)){
+// 				deviceSe = "TABLET";
+// 				var curMainUrl = location.href;
+// 				if(curMainUrl.indexOf("1234567890") > -1){
+// 					alert(jQuery(window).width());
+// 				}
+// 			}else{
+// 				//모바일 접속
+// 				deviceSe = "MOBILE";
+// 			}
+// 		}else{
+// 			//pc 접속
+// 			deviceSe = "PC";
+// 		}
+// 	}
+	
+	menuSelect(location.pathname);
+	/*var url = location.pathname;
+	if(url !="/map/main/grisMapView.do"){
+		var clipboard = new ClipboardJS('.btnUrl');
+		document.querySelector('.copy-url').addEventListener('click', makeUrl);
+
+		clipboard.on('success', function(e) {
+			alert('현재 보고계시는 화면의 고유주소(URL)가 클립보드에 복사되었습니다.\nCtrl + V 또는 붙여 넣기를 선택하여 이용하시기 바랍니다.');
+			jQuery(".share").removeClass("on");
+		});
+		clipboard.on('error', function(e) {
+			temp = prompt("현재 보고계시는 화면의 고유주소(URL)입니다.\nCtrl+C를 눌러 클립보드로 복사하세요", e.text);
+			jQuery(".share").removeClass("on");
+		});
+	}*/
+
+	//웹접근성 추가 - GNB 키보드 접근
+	$('.gnb > li > a').on('blur', function () {
+		var $a = $(this);
+		setTimeout(function () {
+			if ($a.next('.depth2').find('a:focus').length == 0 && !$a.is(':focus')) {
+				$a.next('.depth2.on').removeClass('on');
+			}
+		}, 100);
+	});
+	$('.gnb > li > a').on('focus', function () {
+		$(this).next().addClass('on');
+		$(this).closest('li').siblings('li').find('.depth2.on').removeClass('on');
+	});
+	$('.gnb .depth2 > li > a').on('blur', function () {
+		var $a = $(this);
+		setTimeout(function () {
+			if ($a.closest('.depth2').find('a:focus').length == 0 && !$a.closest('.depth2').prev('a').is(':focus')) {
+				$a.closest('.depth2.on').removeClass('on');
+			}
+		}, 100);
+	});
+	$('.gnb .depth2 > li > a').on('focus', function () {
+		$(this).closest('.depth2').addClass('on');
+	});
+});
+
+function menuSelect(url){
+	if(deviceSe == "PC"){
+		if(url == "/ost/oneStopView.do"){
+			$("#oneStopServiceLi").addClass('on');
+			$("#oneStopServiceLi").siblings('li').removeClass('on');
+		}
+		else if(url=="/map/main/grisMapView.do"){
+			$("#mapServiceLi").addClass('on');
+			$("#mapServiceLi").siblings('li').removeClass('on');
+		}
+		else{
+			var urllist = url.split("/");
+			if(urllist[1]=="rtlp"||urllist[1]=="deal"||urllist[1]=="rent"||urllist[1]=="land"){
+				$("#priceLi").addClass('on');
+				$("#priceLi").siblings('li').removeClass('on');
+			}else if(urllist[1]=="reb"||urllist[1]=="mesr" || urllist[1]=="cont"){
+				$("#rebmesrLi").addClass('on');
+				$("#rebmesrLi").siblings('li').removeClass('on');
+			}else if(urllist[1]=="minw"||urllist[1]=="udt"){
+				$("#comunityLi").addClass('on');
+				$("#comunityLi").siblings('li').removeClass('on');
+			}else if(urllist[1]=="bbs"){
+				var urlsrc = location.search.substring(1, location.search.length);
+				var paramlist = urlsrc.split("&");
+				jQuery.each(paramlist, function(key, value){
+					var valList = value.split("=");
+					if(valList[0] == "menuType"){
+						if(valList[1] == "BBSMENU01"){
+							$("#comunityLi").addClass('on');
+							$("#comunityLi").siblings('li').removeClass('on');
+						}else if(valList[1] == "BBSMENU04"){
+							$("#priceLi").addClass('on');
+							$("#priceLi").siblings('li').removeClass('on');
+						}
+					}
+				});
+			}
+		}
+	}
+}
+</script>
+
+<header>
+	<div class="wrap">
+		<h1 class="logo"><a href="/main/grisMain.do">경기도 GYEONGGI-DO</a></h1>
+		<ul class="gnb unit6">
+			<li id="priceLi">
+				<a href="/kapa/selectKapaCheckView.do">부동산가격</a>
+				<ul class="depth2">
+					<li>
+						<a href="/kapa/selectKapaCheckView.do">깡통전세 알아보기<img class="headerNew" alt="새로운메뉴" src="/images/gris/common/mainNew.png"></a>
+						<ul class="depth3">
+							<li><a href="/kapa/selectKapaCheckView.do">깡통전세 확인하기</a></li>
+							<li><a href="/kapa/selectKapaGuideView.do">깡통전세 주의사항</a></li>
+							<li><a href="https://consult.kapanet.or.kr/" target="_blank">깡통전세 상담센터 바로가기</a></li>
+						</ul>
+					</li>
+					<li>
+						<a href="/rtlp/selectRtlpView.do">실거래가통합조회</a>
+					</li>
+					<li>
+						<a href="/deal/selectRealEstatePriceIndexView.do">부동산거래량통계</a>
+						<ul class="depth3">
+							<li><a href="/deal/selectRealEstatePriceIndexView.do">부동산통계(국가공표)</a></li>
+							<li><a href="/deal/selectDealamountView.do">부동산거래현황</a></li>
+<!-- 							<li><a href="/deal/selectDealAptView.do">아파트거래현황</a></li> -->
+<!-- 							<li><a href="/bbs/selectBbsView.do?menuType=BBSMENU04&noticeType=BBSTYPE01&sort=1">부동산동향</a></li> -->
+							<li><a href="/rent/selectRentView.do">전세가격비율순위</a></li>
+						</ul>
+					</li>
+					<li>
+						<a href="/land/selectLandView.do">가격정보</a>
+					</li>
+					<li>
+						<a href="/bbs/selectBbsView.do?menuType=BBSMENU04&noticeType=BBSTYPE01&sort=2">미분양아파트현황</a>
+					</li>
+				</ul>
+			</li>
+			<li id="oneStopServiceLi">
+				<a href="/ost/oneStopView.do">부동산종합정보</a>
+			</li>
+			<li id="mapServiceLi">
+				<a href="/map/main/grisMapView.do">지도서비스</a>
+				<ul class="depth2">
+					<li><a href="/map/main/grisMapView.do?mapCd=01">연속지적도</a></li>
+					<li><a href="/map/main/grisMapView.do?mapCd=02">항공지적도</a></li>
+					<li><a href="/map/main/grisMapView.do?mapCd=05">토지이용계획</a></li>
+					<li><a href="/map/main/grisMapView.do?mapCd=03">공시가격지도</a></li>
+<!-- 					<li><a href="/map/main/grisMapView.do?mapCd=03">개별공시지가</a></li> -->
+<!-- 					<li><a href="/map/main/grisMapView.do?mapCd=04">주택가격</a></li> -->
+					<li><a href="/map/main/grisMapView.do?mapCd=06">도로명지도</a></li>
+					<!-- <li><a href="/map/main/grisMapView.do?contentId=ui-cont-add-2-id">규제정보</a></li> -->
+					<li><a href="/map/main/grisMapView.do?mapCd=07">규제지도</a></li>
+				</ul>
+			</li>
+			<li id="rebmesrLi">
+				<a href="/reb/selectRebInfoView.do">중개업/측량업</a>
+				<ul class="depth2">
+					<li><a href="/reb/selectRebRateSupView.do">부동산중개보수지원사업</a></li>
+					<li><a href="/reb/selectRealestateReportView.do">부동산실거래신고포상금제도</a></li>
+					<li>
+						<a href="/reb/selectRebInfoView.do">부동산중개업안내</a>
+						<ul class="depth3">
+							<li><a href="/reb/selectRebInfoView.do">중개업안내</a></li>
+							<li><a href="/reb/selectRebInstView.do">교육기관안내</a></li>
+							<!-- <li><a href="/reb/selectRebEduView.do">연수교육안내</a></li>	 -->
+							<li><a href="/reb/selectRebLawList.do">법령정보</a></li>	
+						</ul>
+					</li>
+					<li><a href="/reb/selectRebRateView.do">중개보수계산</a></li>
+					<li>
+						<a href="/reb/selectRebFormView.do">부동산거래</a>
+						<ul class="depth3">
+							<li><a href="/reb/tradeStepGuide.do">부동산거래가이드</a></li>
+							<li><a href="/reb/selectRebFormView.do">부동산계약안내</a></li>
+							<li class="only-mobile-hide"><a href="/cont/selectContView.do">부동산계약서작성</a></li>	
+							<li class="only-mobile-hide"><a href="/reb/selectRebTradeView.do">부동산거래신고</a></li>	
+						</ul>
+					</li>
+					<li>
+						<a href="/gnPlan/selectGnPlanOutline.do">기획부동산불법행위대처</a>
+						<ul class="depth3">
+							<li><a href="/gnPlan/selectGnPlanOutline.do">기획부동산개요</a></li>
+							<li><a href="/gnPlan/selectGnPlanView.do">기획부동산 불법행위(피해)신고센터운영및신고</a></li>
+							<li><a href="/gnPlan/selectGnPlanMaps.do">기획부동산피해주의지역안내지도</a></li>	
+						</ul>
+					</li>
+					<li>
+						<a href="/gnPlan/selectLandTransaction.do">토지거래허가</a>
+						<ul class="depth3">
+							<li><a href="/gnPlan/selectLandTransaction.do">토지거래허가제도안내</a></li>
+							<li><a href="/gnPlan/selectLandTransactionZone.do">토지거래허가구역지정현황</a></li>
+							<li><a href="/gnPlan/selectLandTransactionMaps.do">토지거래허가구역현황지도</a></li>	
+						</ul>
+					</li>
+					<li>
+						<a href="/reb/selectRebListView.do">중개사무소</a>
+						<ul class="depth3">
+							<li><a href="/reb/selectRebListView.do">중개사무소조회</a></li>	
+							<li><a href="/reb/selectRebElcofcList.do">전자계약중개사무소</a></li>	
+						</ul>	
+					</li>
+					<li><a href="/mesr/selectMesurementList.do">측량업체</a></li>
+					<li><a href="/reb/selectRealestateDevList.do">부동산개발업체</a></li>
+					
+					<!-- <li><a href="/reb/tradeStepGuide.do">매매절차가이드</a></li> -->
+				</ul>
+			</li>
+			<li id="comunityLi">
+				<a href="/minw/selectMyTojiView.do">커뮤니티</a>
+				<ul class="depth2">
+					<li>
+						<a href="/minw/selectMyTojiView.do">민원안내</a>
+						<ul class="depth3">
+							<li><a href="/minw/selectMyTojiView.do">조상땅(내토지)찾기</a></li>
+							<li><a href="/minw/selectChangeView.do">바뀐지번찾기</a></li>
+							<li class="only-mobile-hide"><a href="/minw/selectMinwonInfoView.do">민원발급</a></li>
+							<li class="only-mobile-hide"><a href="http://www.iros.go.kr" target="_blank">인터넷등기</a></li>
+							<li><a href="/minw/selectMinwonCallView.do">문의전화안내</a></li>
+						</ul>
+					</li>
+					<li>
+						<a href="/bbs/selectBbsView.do?menuType=BBSMENU01&noticeType=BBSTYPE01&sort=1">게시판</a>
+						<ul class="depth3">
+							<li><a href="/bbs/selectBbsView.do?menuType=BBSMENU01&noticeType=BBSTYPE01&sort=1">공지사항</a></li>
+							<li><a href="/udt/selectUpdateView.do">자료업데이트현황</a></li>
+							<li><a href="/bbs/selectBbsView.do?menuType=BBSMENU01&noticeType=BBSTYPE03&sort=1">묻고답하기</a></li>	
+							<li><a href="/bbs/selectBbsView.do?menuType=BBSMENU01&noticeType=BBSTYPE03&sort=2">개선의견접수</a></li>
+							<li><a href="/bbs/selectBbsView.do?menuType=BBSMENU01&noticeType=BBSTYPE02&sort=1">자주하는질문</a></li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+			<!-- <li>
+				<a href="/map/main/grisMapView.do?contentId=ui-cont-add-4-id">마이페이지</a>				
+			</li> -->
+		</ul>
+		<div class="textsize">
+			<span class="label"><span>글자</span><span>크기</span></span>
+			<a href="javascript:;" class="plus">글자크기 확대</a>
+			<a href="javascript:;" class="minus">글자크기 축소</a>
+		</div>
+		<ul class="util">
+			<li class="i1">
+<script>
+		$(window).load(function(){
+			Kakao.init('53ba54fa29e3e183666f71c090bf6a99');
+			loginYn();
+		});
+		
+		function loginYn(){
+			var userInfo = "";
+			if(userInfo != null & userInfo != ""){
+				loginHiden(true);
+			}else{
+				loginHiden(false);
+			}
+		}
+		
+		function clickLogout() {
+			var loginCd = ""; 
+			if(loginCd == 2){
+				naverLogout();
+	    	}else if(loginCd == 3){
+				kakaoLogout();
+			}
+	    }
+		
+		function naverLogout(){
+			$.ajax({
+	            type : "POST",
+	            dataType : 'text',
+	            url : "http://nid.naver.com/nidlogin.logout",
+	            crossDomain : true,
+	            xhrFields : {
+	               withCredentials : true
+	            }
+	         }).done(function(data) {
+	        	 logoutSession();
+	         }).fail(function(xhr, textStatus, errorThrown) {
+	        	 logoutSession();
+	         });   
+		}
+		
+		function kakaoLogout(){
+			Kakao.Auth.logout(function(data){
+				if(data){
+					setTimeout(function(){
+						logoutSession();
+					},1000);
+				}else{
+					alert("로그아웃에 실패하였습니다.");	
+				}
+			});
+		}
+		
+		function logoutSession(){
+			
+			$.ajax({
+				async	: true,
+			    url :"/login/logout.do",
+			    dataType : 'JSON',
+			    type : 'POST' ,
+			    success : function (res) {
+			        loginHiden(false);
+			    	alert("로그아웃되었습니다.");
+			    	location.href=location.pathname + location.search;
+			    },error:function(request,status,error){
+			    	alert(error);
+			    	mask.close(); 
+			    	axCautionDialog(request.responseJSON.resultMessage);
+			    }
+			});
+		}
+		
+		function loginHiden(state){
+			if(state){
+				$("#login").html("로그아웃");
+			}else{
+				$("#login").html("로그인");
+			}
+		}
+</script>
+<a id="login" href="/login/login.do">로그인</a>
+<a id="logout" style="display:none;" href="javascript:clickLogout();">로그아웃</a></li>
+			<li class="i2">
+<script>
+	function loginCheckYn(){
+		var userInfo = "";
+		//alert("");
+		if(userInfo != null & userInfo != ""){
+			var wid = ((screen.availWidth-549)/4)/2;
+			var wid_2 = (((screen.availWidth-549)/4)/2)+563;
+			var hei = (screen.availHeight-594)/2;
+
+			insertWindow = window.open("/login/selectPreferenceAreaPop.do","insertWindow",'toolbar=no,height=850,width=750,menubar=yes,resizable=yes,status=yes,left=' +
+					+wid+',top='+hei+',leftmargin=10,topmargin=0 , align=center'
+					, 'insertWindow'); 
+			insertWindow.opener = self; 
+			insertWindow.focus();
+		}else{
+			alert("로그인 후 이용하실 수 있습니다.");
+			 location.href = '/login/login.do';
+		}
+	}
+</script>
+<a href="#none" onclick="javascript:loginCheckYn();" title="새창열림">관심지역설정</a></li>
+			<li class="i3">
+				<a href="javascript:insertScrinLog('PRGM01010105000');;">사이트맵</a>
+				<nav class="sitemap">
+					<ul class="depth1">
+						<li>
+							<a href="/kapa/selectKapaCheckView.do">부동산가격</a>
+							<ul class="depth2">
+								<li>
+									<a href="/kapa/selectKapaCheckView.do">깡통전세 알아보기<img class="headerNew" alt="새로운메뉴" src="/images/gris/common/mainNew.png"></a>
+									<ul class="depth3">
+										<li><a href="/kapa/selectKapaCheckView.do">깡통전세 확인하기</a></li>
+										<li><a href="/kapa/selectKapaGuideView.do">깡통전세 주의사항</a></li>
+										<li><a href="https://consult.kapanet.or.kr/" target="_blank">깡통전세 상담센터 바로가기</a></li>
+									</ul>
+								</li>
+								<li>
+									<a href="/rtlp/selectRtlpView.do">실거래가통합조회</a>
+								</li>
+								<li>
+									<a href="/deal/selectRealEstatePriceIndexView.do">부동산거래량통계</a>
+									<ul class="depth3">
+										<li><a href="/deal/selectRealEstatePriceIndexView.do">부동산통계(국가공표)</a></li>
+										<li><a href="/deal/selectDealamountView.do">부동산거래현황</a></li>
+			<!-- 							<li><a href="/deal/selectDealAptView.do">아파트거래현황</a></li> -->
+<!-- 										<li><a href="/bbs/selectBbsView.do?menuType=BBSMENU04&noticeType=BBSTYPE01&sort=1">부동산동향</a></li> -->
+										<li><a href="/rent/selectRentView.do">전세가격비율순위</a></li>
+									</ul>
+								</li>
+								<li>
+									<a href="/land/selectLandView.do">가격정보</a>									
+								</li>
+								<li>
+									<a href="/bbs/selectBbsView.do?menuType=BBSMENU04&noticeType=BBSTYPE01&sort=2">미분양아파트현황</a>									
+								</li>
+							</ul>
+						</li>
+						<li>
+							<a href="/ost/oneStopView.do">부동산종합정보</a>
+							<ul class="depth2">
+								<li><a href="/ost/oneStopView.do?code=01">일필지종합정보</a></li>
+								<li><a href="/ost/oneStopView.do?code=03">단지정보</a></li>
+								<li><a href="/ost/oneStopView.do?code=05">시세/실거래가</a></li>
+								<li><a href="/ost/oneStopView.do?code=07">내집마련주변정보</a></li>
+								<li><a href="/ost/oneStopView.do?code=08">대중교통</a></li>
+								<li><a href="/ost/oneStopView.do?code=09">학교</a></li>
+								<li><a href="/ost/oneStopView.do?code=10">중개사무소</a></li>
+								<li><a href="/ost/oneStopView.do?code=11">지역개발정보</a></li>
+							</ul>
+						</li>
+						<li>
+							<a href="/map/main/grisMapView.do">지도서비스</a>
+							<ul class="depth2">
+								<li>
+									<a href="javascript:void(0);">필지정보</a>
+									<ul class="depth3">
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-add-8-id">필지목록정보</a></li>
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-add-9-id">토지임야정보</a></li>
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-add-10-id">건축물정보</a></li>
+									</ul>
+								</li>
+								<li>
+									<a href="javascript:void(0);">맞춤지도</a>
+									<ul class="depth3">
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-quake-id">건축물내진정보</a></li>
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-measure-id">측량기준점정보</a></li>
+									</ul>
+								</li>
+								<li>
+									<a href="javascript:void(0);">생활정보</a>
+									<ul class="depth3">
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-life-1-id">주변생활정보</a></li>
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-life-2-id">인구현황분석</a></li>
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-life-3-id">공원현황</a></li>
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-add-1-id">문화관광</a></li>
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-add-2-id">규제정보</a></li>
+									</ul>
+								</li>
+								<li>
+									<a href="javascript:void(0);">개발정보</a>
+									<ul class="depth3">
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-dev-1-id">택지개발사업</a></li>
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-dev-2-id">도시재생사업</a></li>
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-dev-3-id">물류정보</a></li>
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-dev-4-id">도로/철도정보</a></li>
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-dev-5-id">산업단지/공장정보</a></li>
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-dev-6-id">행복주택</a></li>
+										<li><a href="/map/main/grisMapView.do?contentId=ui-cont-dev-7-id">투자유치구역</a></li>
+									</ul>
+								</li>
+							</ul>
+						</li>
+						<li>
+							<a href="/reb/selectRebInfoView.do">중개업/측량업</a>
+							<ul class="depth2">
+								<li><a href="/reb/selectRebRateSupView.do">부동산중개보수지원사업</a></li>
+								<li><a href="/reb/selectRealestateReportView.do">부동산실거래신고포상금제도</a></li>
+								<li>
+									<a href="/reb/selectRebInfoView.do">부동산중개업안내</a>
+									<ul class="depth3">
+										<li><a href="/reb/selectRebInfoView.do">중개업안내</a></li>
+										<li><a href="/reb/selectRebInstView.do">교육기관안내</a></li>
+										<!-- <li><a href="/reb/selectRebEduView.do">연수교육안내</a></li> -->	
+										<li><a href="/reb/selectRebLawList.do">법령정보</a></li>	
+									</ul>
+								</li>
+								<li><a href="/reb/selectRebRateView.do">중개보수계산</a></li>
+								<li>
+									<a href="/reb/selectRebFormView.do">부동산거래</a>
+									<ul class="depth3">
+									
+										<li><a href="/reb/tradeStepGuide.do">부동산거래가이드</a></li>
+										<li><a href="/reb/selectRebFormView.do">부동산계약안내</a></li>
+										<li><a href="/cont/selectContView.do">부동산계약서작성</a></li>	
+										<li><a href="/reb/selectRebTradeView.do">부동산거래신고</a></li>	
+									</ul>
+								</li>
+								<li>
+									<a href="/reb/selectRebListView.do">중개사무소</a>
+									<ul class="depth3">
+										<li><a href="/reb/selectRebListView.do">중개사무소조회</a></li>	
+										<li><a href="/reb/selectRebElcofcList.do">전자계약중개사무소</a></li>	
+									</ul>	
+								</li>
+								<li>
+									<a href="/mesr/selectMesurementList.do">측량업체</a>
+									<ul class="depth3">
+										<li><a href="/mesr/selectMesurementList.do">측량업체조회</a></li>	
+										<li><a href="/mesr/selectAgencyList.do">측량기기성능검사대행업체</a></li>	
+									</ul>	
+								</li>
+								<li><a href="/reb/selectRealestateDevList.do">부동산개발업체</a></li>
+							</ul>
+						</li>
+						<li>
+							<a href="/minw/selectMyTojiView.do">커뮤니티</a>
+							<ul class="depth2">
+								<li>
+									<a href="/minw/selectMyTojiView.do">민원안내</a>
+									<ul class="depth3">
+										<li><a href="/minw/selectMyTojiView.do">조상땅(내토지)찾기</a></li>
+										<li><a href="/minw/selectChangeView.do">바뀐지번찾기</a></li>
+										<li><a href="/minw/selectMinwonInfoView.do">민원발급<img alt="외부링크 표시" src="/images/gris/common/link.jpg" style="margin-left: 5px;"></a></li>
+										<li><a href="http://www.iros.go.kr" target="_blank">인터넷등기<img alt="외부링크 표시" src="/images/gris/common/link.jpg" style="margin-left: 5px;"></a></li>
+										<li><a href="/minw/selectMinwonCallView.do">문의전화안내</a></li>
+									</ul>
+								</li>
+								<li>
+									<a href="/bbs/selectBbsView.do?menuType=BBSMENU01&noticeType=BBSTYPE01&sort=1">게시판</a>
+									<ul class="depth3">
+										<li><a href="/bbs/selectBbsView.do?menuType=BBSMENU01&noticeType=BBSTYPE01&sort=1">공지사항</a></li>
+										<li><a href="/udt/selectUpdateView.do">자료업데이트현황</a></li>
+										<li><a href="/bbs/selectBbsView.do?menuType=BBSMENU01&noticeType=BBSTYPE03&sort=1">묻고답하기</a></li>	
+										<li><a href="/bbs/selectBbsView.do?menuType=BBSMENU01&noticeType=BBSTYPE03&sort=2">개선의견접수</a></li>
+										<li><a href="/bbs/selectBbsView.do?menuType=BBSMENU01&noticeType=BBSTYPE02&sort=1">자주하는질문</a></li>
+									</ul>
+								</li>
+							</ul>
+						</li>
+						
+					</ul>
+					<div class="sitemap-bottom">
+						<a href="javascript:;" class="close">닫기</a>
+					</div>
+				</nav>
+			</li>
+			<li class="i4"><a href="javascript:insertScrinLog('PRGM01010106000');;">공유</a></li>
+		</ul>
+
+		<div class="func">
+			<a href="javascript:;" class="menu">메뉴</a>
+			<!-- <a href="#" class="search">검색</a> -->
+			<a href="javascript:;" class="share-btn">공유</a>
+		</div>
+		<div class="share">
+			<div class="pack">
+				<ul class="share-sns">
+					<li class="i3"><a href="javascript:snsShare('naver');" title="새창열림">네이버</a></li>
+					<li class="i4"><a href="javascript:snsShare('kakao');" title="새창열림">카카오톡</a></li>
+				</ul>
+				<a class="copy-url"  href="javascript:snsShare('url');">주소 복사하기</a>
+			</div>
+		</div>
+	</div>
+</header>
+		
+		
+
+
+
+
+
+
+
+
+
+
+		<script src="/js/amcharts/amcharts.js"></script>
+		<script src="/js/amcharts/serial.js"></script>
+		<script src="/js/amcharts/plugins/export/export.min.js"></script>
+		<link type="text/css" rel="stylesheet" href="/js/amcharts/plugins/export/export.css" media="all" />
+		<script src="/js/amcharts/themes/light.js"></script>
+		
+		<script>
+
+			var safeSort ;
+			//날짜 세팅
+			var dt = new Date();
+			var year = dt.getFullYear();
+			var month = dt.getMonth()+1;
+			
+			$(document).ready(function () {
+				insertScrinLog("PRGM01020201000");
+				
+				//insertLog("PGID06002");
+				
+				jQuery("#chartDiv").hide();
+				jQuery("#compareListDeal").hide();
+				jQuery("#compareListDealTotalCnt").hide();				
+
+				if(month<10){
+					month = "0"+month;
+				}
+				$("#cmprYear").append("<option value=''>"+ '비교' +"</option>");
+				//년도별 날짜 세팅
+				for(var i = year ; i >= 2006 ; i--){
+					$("#searchYear").append("<option value='" + i + "'>" + i +"</option>");
+					if(i!=year){
+						$("#cmprYear").append("<option value='" + i + "'>" + i +"</option>");
+					}
+				}
+
+				//기간별 날짜 세팅
+				for(var i = year ; i >= 2007 ; i--){ 
+					for(var j = 1 ; j <= 12 ; j++){ 
+						if(j<10)
+							j = "0"+j
+							
+						$("#startDate").append("<option value='" + (i-1) + "" + j + "'>" + (i-1) + "."+ j +"</option>");
+						$("#endDate").append("<option value='" + i + "" + j + "'>" + i + "."+ j +"</option>"); 		
+					}
+				}
+
+				
+				$("#endDate").find("option").each(function(){
+					if(this.value == year+""+month){  
+						$(this).attr("selected","selected");
+					} 
+				}); 
+
+				$("#startDate").find("option").each(function(){
+					if(this.value == (year-1)+""+month){  
+						$(this).attr("selected","selected");
+					} 
+				}); 
+				
+				$("#searchYear").find("option").each(function(){
+					if(this.value == year){ 
+						$(this).attr("selected","selected");
+					}
+				});
+
+				redOnMenu(3, 4);
+				//list_deal();
+				//alert("부동산 거래현황 자료를 업데이트 중입니다.\n빠른 시간내에 정상적으로 서비스 될 수 있도록 하겠습니다.");
+
+			});
+			
+			function doGubunChg() {
+				//$("#listDeal > tbody").remove();
+				//$("#sggListDeal > tbody").remove();
+				//$("#lineChart").empty();
+				//$("#graph").empty();
+				
+				if($("#groupDate").val()=="gubunMonth"){					
+					$("#year").css("display","none");
+					$("#gigan").css("display","");
+				}else{
+					changeMonth();
+					$("#year").css("display","");
+					$("#gigan").css("display","none"); 
+				}
+			}
+			
+			function doDayTypeChg() {
+				list_deal(null);
+			}
+
+			var searchData = new Array();
+			var monthArr = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
+			
+			var bdsGbn = "01";
+			 
+			function list_deal(bdsGbn, _sgg_cd){
+				//alert("부동산 거래현황 자료를 업데이트 중입니다.\n빠른 시간내에 정상적으로 서비스 될 수 있도록 하겠습니다.");
+				
+				if(bdsGbn == null)
+					$("#sggCd").val("");
+				
+				jQuery.ajax({
+					url: "/deal/selectDealMonthList.do",
+					type: "POST",
+					data: jQuery("#dealamountVo").serialize(),
+					dataType: "json",
+					beforeSend:function(){    		
+			    		//openMobileProgress();
+						openProgress();
+					},
+					success:function(data){
+						
+						try {
+							
+							jQuery("#chartDiv").show();
+							jQuery("#compareListDeal").hide();
+							jQuery("#compareListDealTotalCnt").hide();
+
+							var s1 = new Array(); 
+							var s2 = new Array();
+							
+							//console.log($("#listDealTotalcnt").text());
+							
+							$("#listDeal > tbody").remove();
+							$("#sggListDeal > tbody").remove();
+							$("#listDealCaption").empty();
+							jQuery("#listDealTotalCnt").text("");
+							
+							$("#lineChart").empty();
+							//$("#thMonthVal").text("");
+							
+							if (data.monthList.length > 0) {
+								if($("#groupDate").val()=="gubunMonth"){
+									changeDate($("#startDate"));
+									$("#listDealCaption").text($("#startDate option:selected").val().substring(0,4) + "." + $("#startDate option:selected").val().substring(4,6) 
+											+ " ~ " + $("#endDate option:selected").val().substring(0,4) + "." + $("#endDate option:selected").val().substring(4,6) 
+											+ " 경기도 부동산거래현황");
+									$("#listDealOtherTmpl").tmpl( data.monthList ).appendTo("#listDeal");
+								}else{
+									$("#listDealCaption").text($("#searchYear option:selected").val() + "년 경기도 부동산거래현황");
+									$("#listDealTmpl").tmpl( data.monthList ).appendTo("#listDeal");
+								}
+								
+								jQuery("#listDealTotalCnt").text("합계 : " + data.monthList[0].totCnt);
+								
+								s2[0] = data.monthList[0].a1;
+								s2[1] = data.monthList[0].a2;
+								s2[2] = data.monthList[0].a3;
+								s2[3] = data.monthList[0].a4;
+								s2[4] = data.monthList[0].a5;
+								s2[5] = data.monthList[0].a6;
+								s2[6] = data.monthList[0].a7;
+								s2[7] = data.monthList[0].a8;
+								s2[8] = data.monthList[0].a9;
+								s2[9] = data.monthList[0].a10;
+								s2[10] = data.monthList[0].a11;
+								s2[11] = data.monthList[0].a12;
+								
+								searchData = new Array();
+								
+								if(data.monthList[0].a13 != null && data.monthList[0].a13 != ""){
+									s2[12] = data.monthList[0].a13;
+									
+									for(var i = 0 ; i <=12 ; i++){ 
+										searchData[i] = {month:setMonth[i], value:s2[i]};
+									}
+								}else{
+									for(var i = 0 ; i <=11 ; i++){
+										searchData[i] = {month:monthArr[i], value:s2[i]};
+									}
+								}
+								
+								jQuery("#cmprYear").val("").attr("selected","selected");
+								createChart("lineChart", searchData, "", "");
+								//jqplot_chart_draw("tatChartMonDiv", "1", searchData, null); 
+
+								//$("#thMonthVal").text(data.monthList[0].YY + "년");
+								
+							} else {
+								jQuery("#listDealTotalCnt").text("합계 : 0");
+								$("#emptyTmpl1").tmpl( "" ).appendTo("#listDeal");
+							}
+
+
+							//월별 시군구
+							if (data.monthList.length > 0) {
+								if($("#groupDate").val()=="gubunMonth"){
+									$("#sggListDealOtherTmpl").tmpl( data.sggList ).appendTo("#sggListDeal");
+								}else{
+									$("#sggListDealTmpl").tmpl( data.sggList ).appendTo("#sggListDeal");
+								}
+							} else {
+								$("#emptyTmpl").tmpl( "" ).appendTo("#sggListDeal");
+							}
+
+							//$("#listDealTmpl").resetTag();
+							//$("#sggListDealTmpl").resetTag();
+
+
+							//drawBarChart(); 
+							closeProgress();
+							
+						} catch (e) {
+							alert(e.message);
+						}
+					},
+					error: function(request,status,error){
+				        //closeMobileProgress();
+						closeProgress();
+				    }
+					
+				});
+
+			}
+			 
+			//콤마제거
+		    function uncomma(str){
+	    	    str = String(str);
+	    	    return str.replace(/[^\d]+/g, '');
+			}
+			
+			//년도비교
+			function cmpr_deal(){
+				//insertLog("PGID06002");
+				
+				if($("#cmprYear option:selected").val() == "" || $("#cmprYear option:selected").val() == null){
+					return;
+				}
+
+				$("#sggCd").val(""); 
+
+				var sDate = $("#startDate option:selected").val();
+				var eDate = $("#endDate option:selected").val();
+
+				var stDate = sDate.replace(sDate.substring(0,4),$("#cmprYear option:selected").val());
+				var edDate = eDate.replace(eDate.substring(0,4),$("#cmprYear option:selected").val()*1+1);
+
+				jQuery.ajax({
+					url: "/deal/selectDealMonthList.do",
+					type: "POST",
+					data: {searchYear: $("#cmprYear option:selected").val(),startDate: stDate,endDate: edDate,bdsGbn:$("#bdsGbn option:selected").val(),gubun:$("#gubun option:selected").val(),groupDate: $("#groupDate option:selected").val(),sggCd:$("#sggCd").val(),daytype:$("#daytype").val()},
+					dataType: "json",
+					beforeSend:function(){    		
+			    		//openMobileProgress();
+						openProgress();
+					},
+					success:function(data){
+						
+						try {
+							
+							jQuery("#compareListDeal > tbody").remove();
+							jQuery("#compareListDeal").show();
+							jQuery("#compareListDealTotalCnt").show();							
+							
+							$("#compareListDealCaption").empty();
+							$("#compareListDealTotalCnt").empty();
+
+							var s1 = new Array(); 
+							var s2 = new Array(); 
+							var s3 = new Array(); 
+
+							var table = document.getElementById("listDeal"); 
+							var rowsCount = table.rows.length;
+
+							if(rowsCount > 2){
+								$('#listDeal > tbody:last > tr:last').remove();
+							}
+							$("#lineChart").empty();
+
+							if (data.monthList.length > 0) {
+								
+								$("#compareListDealTotalCnt").append("합계 : " + data.monthList[0].totCnt);
+								
+								s2[0] = data.monthList[0].a1;
+								s2[1] = data.monthList[0].a2;
+								s2[2] = data.monthList[0].a3;
+								s2[3] = data.monthList[0].a4;
+								s2[4] = data.monthList[0].a5;
+								s2[5] = data.monthList[0].a6;
+								s2[6] = data.monthList[0].a7;
+								s2[7] = data.monthList[0].a8;
+								s2[8] = data.monthList[0].a9;
+								s2[9] = data.monthList[0].a10;
+								s2[10] = data.monthList[0].a11;
+								s2[11] = data.monthList[0].a12;
+								
+								if(data.monthList[0].a13 != null && data.monthList[0].a13 != ""){
+									changeDate($("#startDate"));
+									$("#compareListDealCaption").text($("#cmprYear option:selected").val() + "." + $("#startDate option:selected").val().substring(4,6) 
+											+ " ~ " + (parseInt($("#cmprYear option:selected").val())+1) + "." + $("#endDate option:selected").val().substring(4,6) 
+											+ " 경기도 부동산거래현황");
+									$("#listDealOtherTmpl").tmpl( data.monthList ).appendTo("#compareListDeal");
+									
+									s2[12] = data.monthList[0].a13;
+									
+									for(var i = 0 ; i <=12 ; i++){ 
+										s3[i] = {month:setMonth[i], value:searchData[i].value, value2:s2[i]};
+									}
+								}else{
+									$("#compareListDealCaption").text($("#cmprYear option:selected").val() + "년 경기도 부동산거래현황");
+									$("#listDealTmpl").tmpl( data.monthList ).appendTo("#compareListDeal");
+									
+									for(var i = 0 ; i <=11 ; i++){
+										s3[i] = {month:monthArr[i], value:searchData[i].value, value2:s2[i]};
+									}
+								}
+								
+								createChart("lineChart", s3, "", "비교");
+							} else {
+								$("#compareListDealTotalCnt").append("합계 : 0");
+								$("#emptyTmpl1").tmpl( "" ).appendTo("#compareListDeal");
+							}
+							closeProgress();
+							
+						} catch (e) {
+							alert(e.message);
+						}
+					},
+					error: function(request,status,error){
+				        //closeMobileProgress();
+						closeProgress();
+				    }
+					
+				});
+
+/*
+				var func2 = function(json){ 
+
+					
+					for(var i = 0 ; i < json.SGGDEALAMOUNTMONTH.length ; i++){
+						cmprCnt[i] = json.SGGDEALAMOUNTMONTH[i].TOTCNT;
+						cmprSgg[i] = json.SGGDEALAMOUNTMONTH[i].SGG_NM;  
+					} 
+
+					for(var i = 0 ; i < cmprCnt.length ; i++){
+						cmprCnt[i] = uncomma(cmprCnt[i]);	//콤마제거
+						cmprCnt[i] *= 1;	//숫자변환
+					}
+
+					drawBarChart();    
+					
+				}
+				
+				callAjax("/dealAmount/dealAmountMonth.do", func2, {searchYear: $("#cmprYear option:selected").val(),startDate: stDate, endDate: edDate, bdsGbn:$("#bdsGbn option:selected").val(),gubun:$("#gubun option:selected").val(), groupDate: $("input[name=groupDate]:checked").val(),sggCd:$("#sggCd").val(),daytype:$("#daytype").val()}, true);  
+*/			}
+
+			//엑셀 다운로드
+			function downExcel(){
+				//insertLog("PGID06002");
+
+				document.dealamountVo.action = "/deal/selectDealExcelDown.do";
+				document.dealamountVo.submit(); 
+			}
+
+			//기간별 날짜 change function 
+			function changeDate(param){
+				//$("#listDeal > tbody").remove();
+				//$("#sggListDeal > tbody").remove();
+				//$("#lineChart").empty();
+				//$("#graph").empty();
+				
+				var $this = param;
+				var date = "";
+				if($this.attr("id")=="startDate"){
+					date = $this.val()+"";
+					$("#endDate").find("option").each(function(){
+						if(this.value == $this.val()*1+100){  
+							$(this).attr("selected","selected");
+						} 
+					});
+				}else{
+					date = ($this.val()*1-100)+"";
+					$("#startDate").find("option").each(function(){
+						if(this.value == $this.val()*1-100){    
+							$(this).attr("selected","selected");
+						}
+					});
+				}
+
+				changeMonth(date);
+			}
+
+			//table header 변경
+			var setMonth = new Array(14);
+			var z = 1;
+			var setCompareMonth = new Array(14);
+			var zz = 1;
+			function changeMonth(dt){
+				$(".thead_month").contents().remove();
+				$(".thead_listDeal").contents().remove();
+				$(".thead_compareListDeal").contents().remove();				
+				
+				if(dt!=null){
+					
+					var setYY = dt.substr(2,2);
+					var setMM = dt.substr(4,2)*1; 
+					
+					for(var i = 0 ; i <= 12 ; i++){
+						
+						if(i==0){
+							setMonth[i] = setYY+"년<br>"+setMM+"월";
+						}else if(i>0 && i<=12){  		
+							if((setMM*1+i) > 12){
+								var setMMN = 0;
+								if(z==1)
+									setMonth[i] = (setYY*1+1)+"년<br>"+(setMMN+z)+"월";
+								else
+									setMonth[i] = (setMMN+z)+"월";
+								z++;
+							}else{
+								setMonth[i] = (setMM+i)+"월";
+							}
+						}else{
+							setMonth[i] = setMM+"월";
+						}
+					}
+					
+					z = 1;
+					
+					var rowListDeal = "<tr>";
+					//rowListDeal += "<th>합계</th>";  
+					for(var i = 0 ; i < 13 ; i++){
+						rowListDeal += "<th>"+setMonth[i]+"</th>";
+					}
+					rowListDeal += "</tr>"; 
+	
+					var row = "<tr>";
+						row += "<th>구분</th>";
+						row += "<th>합계</th>";  
+					for(var i = 0 ; i < 13 ; i++){
+						row += "<th>"+setMonth[i]+"</th>";
+					}
+					row += "</tr>"; 
+					
+					for(var i = 0 ; i <= 12 ; i++){
+						
+						if(i==0){
+							setCompareMonth[i] = $("#cmprYear option:selected").val().substr(2,2)+"년<br>"+setMM+"월";
+						}else if(i>0 && i<=12){  		
+							if((setMM*1+i) > 12){
+								var setMMN = 0;
+								if(zz==1)
+									setCompareMonth[i] = ($("#cmprYear option:selected").val().substr(2,2)*1+1)+"년<br>"+(setMMN+zz)+"월";
+								else
+									setCompareMonth[i] = (setMMN+zz)+"월";
+								zz++;
+							}else{
+								setCompareMonth[i] = (setMM+i)+"월";
+							}
+						}else{
+							setCompareMonth[i] = setMM+"월";
+						}
+					}
+					
+					zz = 1;
+					
+					var rowCompareListDeal = "<tr>";
+					//rowCompareListDeal += "<th>합계</th>";  
+					for(var i = 0 ; i < 13 ; i++){
+						rowCompareListDeal += "<th>"+setCompareMonth[i]+"</th>";
+					}
+					rowCompareListDeal += "</tr>";
+					 
+				}else{
+					//var defaultListDeaMonth = ["합계","1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"]	;
+					var defaultListDeaMonth = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
+					var rowListDeal = "<tr>";
+					for(var i = 0 ; i < 14 ; i++){
+						rowListDeal += "<th>"+defaultListDeaMonth[i]+"</th>"; 
+					}
+					rowListDeal += "</tr>";
+					
+					var rowCompareListDeal = "<tr>";
+					for(var i = 0 ; i < 14 ; i++){
+						rowCompareListDeal += "<th>"+defaultListDeaMonth[i]+"</th>"; 
+					}
+					rowCompareListDeal += "</tr>";
+					
+					var defaultMonth = ["구분","합계","1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"]
+					var row = "<tr>";
+					for(var i = 0 ; i < 14 ; i++){
+						row += "<th>"+defaultMonth[i]+"</th>"; 
+					}
+					row += "</tr>";  
+				}				
+				
+				$(".thead_listDeal").append(rowListDeal);
+				$(".thead_compareListDeal").append(rowCompareListDeal);				
+				$(".thead_month").append(row);
+			} 
+
+			//분양권, 토지임야 선택시 전/월세 선택되어있는경우
+			function checkGubun(param){/*
+				 if($("#bdsGbn option:selected").val()=='04' || $("#bdsGbn option:selected").val()=='06'){
+					if($("#gubun option:selected").val()=="LFMT"){
+						alert($("#bdsGbn option:selected").text()+"은 전/월세 가격이 없습니다");
+						$("#gubun option:eq(0)").attr("selected","selected");
+					}
+				 };
+*/
+				 if($("#gubun option:selected").val()=="LFMT" || $("#gubun option:selected").val()=="LFMT_Y" || $("#gubun option:selected").val()=="LFMT_M"){
+					 if($("#bdsGbn option:selected").val()=='04' || $("#bdsGbn option:selected").val()=='06'){
+						alert($("#bdsGbn option:selected").text()+"은 전/월세 가격이 없습니다");
+						var gubun = document.getElementById("gubun");
+						gubun.value = "TRDE";
+// 						$("#gubun option:eq(0)").attr("selected","selected"); 
+					 }	 
+				 }
+
+
+
+				//구분별 비교년도 세팅
+				if(param=="g"){
+					$("#cmprYear option").remove();
+					$("#searchYear option").remove();
+					$("#startDate option").remove(); 
+					$("#endDate option").remove();
+					
+					if($("#gubun option:selected").val() == "TRDE"){
+						for(i = year; i >= 2006; i--){
+							$("#searchYear").append("<option value='" + i + "'>" + i + "</option>");
+							$("#cmprYear").append("<option value='" + i + "'>" + i + "</option>");
+						}
+	
+						//기간별 날짜 세팅
+						for(var i = year ; i >= 2007 ; i--){
+							for(var j = 1 ; j <= 12 ; j++){
+								if(j<10)
+									j = "0"+j
+									
+								$("#startDate").append("<option value='" + (i-1) + "" + j + "'>" + (i-1) + "."+ j +"</option>");
+								$("#endDate").append("<option value='" + i + "" + j + "'>" + i + "."+ j +"</option>"); 		
+							}
+						} 
+					}else{
+						for(i = year; i >= 2011; i--){
+							$("#searchYear").append("<option value='" + i + "'>" + i + "</option>");
+							$("#cmprYear").append("<option value='" + i + "'>" + i + "</option>");
+						}
+	
+						//기간별 날짜 세팅
+						for(var i = year ; i >= 2012 ; i--){
+							for(var j = 1 ; j <= 12 ; j++){
+								if(j<10)
+									j = "0"+j
+									
+								$("#startDate").append("<option value='" + (i-1) + "" + j + "'>" + (i-1) + "."+ j +"</option>");
+								$("#endDate").append("<option value='" + i + "" + j + "'>" + i + "."+ j +"</option>"); 		
+							}
+						}
+						 
+					}
+					/*
+					$("#cmprYear option:last").attr("selected","selected");
+					$("#searchYear option:last").attr("selected","selected");
+					*/
+				}
+			}
+
+			var page;
+			function showSgg(sggCd,sggNm,gbn,totCnt){
+
+				//parameter change
+				if(sggCd.substring(4,5) != '0')
+					$("#sggFlag").val("1");
+				else
+					$("#sggFlag").val(""); 
+
+				
+				//상세정보 delete
+				if($('.dt_'+sggCd).length > 0){
+					$('.dt_'+sggCd).remove();
+					$("#tr_"+sggCd+" td:eq(0)").removeClass("leftBorder");  
+					return;
+				}
+				
+				$("#sggCd").val(sggCd);
+				
+				var $this = $("#tr_"+sggCd);
+
+				jQuery.ajax({
+					url: "/deal/selectDealMonthList.do",
+					type: "POST",
+					data: jQuery("#dealamountVo").serialize(),
+					dataType: "json",
+					beforeSend:function(){    		
+			    		//openMobileProgress();
+						openProgress();
+					},
+					success:function(data){
+						
+						if(data.sggList.length > 1){
+							for(i = 0 ; i < data.sggList.length ; i++){
+							    var row = "<tr title='새창열림' style='cursor:pointer;' class='dt_"+sggCd+"'  onclick='showSgg(&#39;" + data.sggList[i].sggCd +"&#39; , &#39;"+ data.sggList[i].sggNm +"&#39; , &#39;&#39; ,&#39;"+data.sggList[i].totCnt+"&#39;)'>";
+							    row += "<td class='leftBorder' style='font-weight:bolder; text-decoration:underline;'><button type='button' class='transparent' onclick='showSgg(&#39;" + data.sggList[i].sggCd +"&#39; , &#39;"+ data.sggList[i].sggNm +"&#39; , &#39;&#39; ,&#39;"+data.sggList[i].totCnt+"&#39;)'>"+data.sggList[i].sggNm+"</button></td>";   
+							    row += "<td>"+data.sggList[i].totCnt+"</td>";   
+							    row += "<td>"+data.sggList[i].a1+"</td>";
+							    row += "<td>"+data.sggList[i].a2+"</td>";
+							    row += "<td>"+data.sggList[i].a3+"</td>";
+							    row += "<td>"+data.sggList[i].a4+"</td>";
+							    row += "<td>"+data.sggList[i].a5+"</td>";
+							    row += "<td>"+data.sggList[i].a6+"</td>";
+							    row += "<td>"+data.sggList[i].a7+"</td>";
+							    row += "<td>"+data.sggList[i].a8+"</td>";
+							    row += "<td>"+data.sggList[i].a9+"</td>";
+							    row += "<td>"+data.sggList[i].a10+"</td>";
+							    row += "<td>"+data.sggList[i].a11+"</td>";
+							    row += "<td>"+data.sggList[i].a12+"</td>";
+							    if(data.sggList[i].a13 != null && data.sggList[i].a13 != "" && data.sggList[i].a13 != "undefined")
+							    	row += "<td>"+data.sggList[i].a13+"</td>"; 
+							    row += "</tr>";
+							    $this.after(row);  
+							}  
+
+							$("#tr_"+sggCd+" td:eq(0)").addClass("leftBorder"); 
+
+							if(gbn!='1'){
+								//page = window.open("/deal/selectDealamountPopView.do?sggNm="+sggNm+"&totCnt="+totCnt+"&daytype="+$("#daytype").val(),"","width=590, height=670, scrollbars=no");
+								window.open('about:blank','umdPop','width=800, height=830, scrollbars=no');
+								$("#totCnt").val(totCnt);
+								$("#sggNm").val(sggNm);
+								$("#dealamountVo").attr("action","/deal/selectDealamountPopView.do");
+								$("#dealamountVo").attr("target","umdPop");
+								$("#dealamountVo").submit();
+							}
+						}else{ 
+							//page = window.open("/deal/selectDealamountPopView.do?sggNm="+sggNm+"&totCnt="+totCnt+"&daytype="+$("#daytype").val(),"","width=590, height=670, scrollbars=no");
+							window.open('about:blank','umdPop','width=800, height=830, scrollbars=no');
+							$("#totCnt").val(totCnt);
+							$("#sggNm").val(sggNm);
+							$("#dealamountVo").attr("action","/deal/selectDealamountPopView.do");
+							$("#dealamountVo").attr("target","umdPop");
+							$("#dealamountVo").submit();
+						}
+						closeProgress();
+					},
+					error: function(request,status,error){
+				        //closeMobileProgress();
+						closeProgress();
+				    }
+					
+				});
+			}
+			
+			function createChart(chartId, data, chartTitle, setType){
+				/*var min = data[0].RENT_GPRC;
+				for(var i=0; i<data.length; i++){
+					data[i].MD = data[i].JOSA_YMD.substr(2,2) + "/" + data[i].JOSA_YMD.substr(4,2) + "/" + data[i].JOSA_YMD.substr(6,2);
+					data[i].JOSA_YMD = data[i].JOSA_YMD.substr(0,4) + "-" + data[i].JOSA_YMD.substr(4,2) + "-" + data[i].JOSA_YMD.substr(6,2);
+					
+					if(min > data[i].RENT_GPRC){
+						min = data[i].RENT_GPRC;
+					}
+				}*/
+				var labelRotation = -20;
+
+				var modeStr = "";
+				var modeStr1 = "";
+
+				if($("#groupDate").val() == "gubunYear"){
+					modeStr = $("#searchYear").val();
+					modeStr1 = $("#cmprYear option:selected").val();
+				}else{
+					modeStr = $("#startDate").val().substring(0,4) + "." + $("#startDate").val().substring(4,6) 
+					+ " ~ " + $("#endDate").val().substring(0,4) + "." + $("#endDate").val().substring(4,6);
+					
+					modeStr1 = $("#cmprYear option:selected").val() + "." + $("#startDate").val().substring(4,6) 
+					+ " ~ " + (parseInt($("#cmprYear option:selected").val())+1) + "." + $("#endDate").val().substring(4,6);
+				}
+				
+				if(setType == "비교"){
+					var chart = AmCharts.makeChart( chartId, {
+						"type": "serial",
+						"theme": "light",
+						"titles": [{"size": 15,"text": chartTitle}],
+						"legend":{
+							//"equalWidths": false,
+							"align": "center",
+							"useGraphSettings": true
+						},
+						"dataProvider": data,
+						"startDuration": 1,
+						"valueAxes": [{
+					        "id": "Axis",
+					        "position": "left",
+					    }],
+						"graphs": [{
+							"alphaField": "alpha",
+						    "balloonText": "[[value]]",
+						    "fillAlphas": 1,
+						    "title": modeStr,
+						    "type": "column",
+						    "valueField": "value",
+						}, {
+							"animationPlayed": true,
+							"balloonText": "[[value2]]",
+					        "bullet": "round",
+					        "bulletBorderAlpha": 1,
+					        "bulletBorderThickness": 0.3,
+					        "lineAlpha": 1,
+					        "title": modeStr1,
+					        "fillAlphas": 0,
+					        "valueField": "value2",
+					        "valueAxis": "Axis"
+						}],
+						"chartCursor": {
+					        "valueLineEnabled": true,
+					        "valueLineBalloonEnabled": false,
+					        "categoryBalloonEnabled": false,
+						    "cursorAlpha": 0,
+						    //"zoomable": false
+						},
+						"categoryField": "month",
+						"categoryAxis": {
+					        "gridPosition": "start",
+					        "axisAlpha":0,
+					        "gridAlpha":0
+
+					    },
+						"export": {"enabled": false},
+						"accessible": true,
+						"accessibleDescription": "경기도 부동산거래현황 차트",
+						"accessibleTitle": "경기도 부동산거래현황 차트"
+					});
+				}else{
+					var chart = AmCharts.makeChart( chartId, {
+						"type": "serial",
+						"theme": "light",
+						"titles": [{"size": 15,"text": chartTitle}],
+						"legend":{
+							//"equalWidths": false,
+							"align": "center",
+							"useGraphSettings": true
+						},
+						"dataProvider": data,
+						"startDuration": 1,
+						"valueAxes": [{
+							"axisAlpha": 0,
+							"position": "left",
+					    }],
+						"graphs": [{
+							"alphaField": "alpha",
+						    "balloonText": "[[value]]",
+						    "fillAlphas": 1,
+						    "title": modeStr,
+						    "type": "column",
+						    "valueField": "value",
+						}],
+						"chartCursor": {
+					        "valueLineEnabled": true,
+					        "valueLineBalloonEnabled": false,
+					        "categoryBalloonEnabled": false,
+						    "cursorAlpha": 0,
+						    //"zoomable": false
+						},
+						"categoryField": "month",
+						"export": {"enabled": false},
+						"accessible": true,
+						"accessibleDescription": "경기도 부동산거래현황 차트",
+						"accessibleTitle": "경기도 부동산거래현황 차트"
+					});
+				}
+			}
+		</script>
+	
+		<div id="container" class="sub">
+			<div class="wrap">
+				
+
+
+
+
+
+
+
+
+
+
+
+<script>
+
+	function redOnMenu(mcd, scd, menuType, noticeType, sort){
+	
+		for(var i = 1 ; i <6 ; i++){
+			if(mcd == i){
+				jQuery("#redMenu" + i).addClass("on");
+			}
+			else{
+				jQuery("#redMenu" + i).removeClass("on");
+			}
+		}
+		
+		for(i = 1 ; i <10 ; i++){
+			if(scd == i){
+				jQuery("#redSubM" + i).addClass("on");
+			}
+			else{
+				jQuery("#redSubM" + i).removeClass("on");
+			}
+		}
+		if(noticeType == "BBSTYPE01" && menuType == "BBSMENU04" && sort == "1"){
+// 			jQuery("#redMenu2").addClass("on");
+			jQuery("#redMenu3").addClass("on");
+			jQuery("#redSubM5").addClass("on");
+		}else if(noticeType == "BBSTYPE01" && menuType == "BBSMENU04" && sort == "2"){
+			jQuery("#redMenu5").addClass("on");
+			//jQuery("#redSubM6").addClass("on");
+		}
+	}
+
+</script>
+<form name="actionNavi" method="post">
+	<nav id="lnb">
+		<div class="depth1"><span>부동산가격</span></div>
+		<ul class="depth2">
+			<li id="redMenu1">
+				<a href="/kapa/selectKapaCheckView.do">깡통전세 알아보기</a>
+				<ul class="depth3">
+					<li id="redSubM1"><a href="/kapa/selectKapaCheckView.do">깡통전세 확인하기</a></li>
+					<li id="redSubM2"><a href="/kapa/selectKapaGuideView.do">깡통전세 주의사항</a></li>
+					<li id="redSubM3"><a href="https://consult.kapanet.or.kr/" target="_blank" onclick="fnInsertProgramLog('PRGMRT137');insertScrinLog('PRGM01020503000');">깡통전세 상담센터 바로가기<img alt="외부링크 표시" src="/images/gris/common/link.jpg" style="margin-left: 5px;"></a></li>
+				</ul>
+			</li>
+			<li id="redMenu2">
+				<a href="/rtlp/selectRtlpView.do">실거래가통합조회</a>
+			</li>
+<!-- 			<li id="redMenu7"> -->
+<!-- 				<a href="/deal/selectRealEstateTradingView.do">경기도 부동산 거래량 추이</a> -->
+<!-- 			</li> -->
+			<li id="redMenu4">
+				<a href="/deal/selectRealEstatePriceIndexView.do">부동산거래량통계</a>
+				<ul class="depth3">
+					<li id="redSubM9"><a href="/deal/selectRealEstatePriceIndexView.do">부동산통계(국가공표)</a></li>
+					<li id="redSubM4"><a href="/deal/selectDealamountView.do">부동산거래현황</a></li>
+<!-- 					<li id="redSubM2"><a href="/rtlp/apt/selectAptAmountView.do">집합건물거래현황</a></li> -->
+<!-- 					<li id="redSubM5"><a href="/bbs/selectBbsView.do?menuType=BBSMENU04&noticeType=BBSTYPE01&sort=1">부동산동향</a></li> -->
+					<li id="redSubM6"><a href="/rent/selectRentView.do">전세가격비율순위</a></li>	
+<!-- 					<li id="redSubM7"><a href="/deal/selectWeekView.do">아파트 주간거래</a></li> -->
+<!-- 					<li id="redSubM8"><a href="/deal/selectDealInfo.do">거래정보 자료제공</a></li> -->
+				</ul>
+			</li>
+			<li id="redMenu5">
+				<a href="/land/selectLandView.do">가격정보</a>
+				<!-- <ul class="depth3">
+					<li id="redSubM5"><a href="/land/selectLandView.do">가격정보</a></li>
+					<li id="redSubM6"><a href="/bbs/selectBbsView.do?menuType=BBSMENU04&noticeType=BBSTYPE01&sort=2">미분양아파트현황</a></li>
+				</ul> -->
+			</li>
+			<li id="redMenu6">
+				<a href="/bbs/selectBbsView.do?menuType=BBSMENU04&noticeType=BBSTYPE01&sort=2">미분양아파트현황</a>				
+			</li>
+		</ul>
+	</nav>
+</form> 		
+ 	
+	
+				<div id="content">
+					<div class="page-head">
+						<h1 class="page-title">부동산거래현황</h1>
+						<ul class="page-loca">
+							<li><a href="/main/grisMain.do">Home</a></li>
+							<li><a href="/rtlp/selectRtlpView.do">부동산가격</a></li>
+							<li><a href="/deal/selectDealamountView.do">부동산거래량통계</a></li>
+							<li><a href="/deal/selectDealamountView.do">부동산거래현황</a></li>
+						</ul>
+					</div>
+					<div class="page-body">
+						<div class="box-tip">
+							<span class="box-tip-label">알림</span>
+							<ul class="box-tip-list">
+								<li><em>신고된 실거래가에서 승인 및 적정판정된 자료로 계약일자기준입니다.</em></li>
+								<li><em>공식적인 통계와 차이가 있을 수 있으니 참고자료로만 활용하시기 바랍니다.</em></li>
+								<li>전일자 거래현황이 매일 반영되므로 조회시에 수치가 바뀔 수 있습니다.</li>
+<!-- 								<li style="margin-top: 8px;"><em>분양권/입주권 현황에서 준공전분양권은 포함되지 않습니다.</em></li> -->
+								<li>정확한 통계자료는 국토교통부 부동산통계정보를 활용하시기 바랍니다.<a href="https://www.reb.or.kr/r-one/main.do" target="_blank" class="gg-btn blue" style="margin-left: 20px; height: 30px; line-height: 30px;" title="국토교통부통계(한국부동산원) 바로가기(새창 열림)">국토교통부통계(한국부동산원) 바로가기</a></li>
+<!-- 								<li>국토교통부(한국부동산원)와의 연계로 기존에 제공하던 수치와 다를수 있습니다.</li> -->
+							</ul>
+<!-- 							<div class="box-tip-button"> -->
+<!-- 								<a href="http://www.r-one.co.kr" class="btn" target="_blank">온나라통계 바로가기</a> -->
+<!-- 								<a href="http://www.r-one.co.kr" class="btn" target="_blank">국토교통부(한국부동산원) 부동산통계정보 바로가기</a> -->
+<!-- 							</div> -->
+						</div>
+						<div class="gg-frm gg-sch right">
+							<form name="dealamountVo" id="dealamountVo" method="post">
+								<input type="hidden" id="sggFlag" name="sggFlag"/>
+								<input type="hidden" id="sggCd" name="sggCd" value = "">
+								<input type="hidden" id="sggNm" name="sggNm" value = "">
+								<input type="hidden" id="totCnt" name="totCnt" value = "">
+								<input type="hidden" id="daytype" name="daytype" value = "DEAL">
+								<div class="grp-row" >
+									<div class="grp" >
+										<label for="groupDate" class="labelHidden">연도별/기간별 선택</label>
+										<select class="short" id="groupDate" name="groupDate" onchange="doGubunChg()" title="연도별/기간별 선택">
+											<option value="gubunYear" selected>연도별</option>
+											<option value="gubunMonth">기간별</option>
+										</select>
+									</div>
+	<!-- 								<div class="grp"> -->
+	<!-- 									<label for="daytype" class="labelHidden">신고일/계약일 선택</label> -->
+	<!-- 									<select class="short" id="daytype" name="daytype" onchange="doDayTypeChg()" title="신고일/계약일 선택"> -->
+	<!-- 										<option value="ACC" selected>신고일</option> -->
+	<!-- 										<option value="DEAL">계약일</option> -->
+	<!-- 									</select> -->
+	<!-- 								</div> -->
+									<div class="grp" id="year">
+										<label for="searchYear" class="labelHidden">년도 선택</label>
+										<select class="short" name="searchYear" id="searchYear" title="년도 선택">
+		<!-- 									<option value="" selected>2018</option> -->
+										</select>
+									</div>
+									<div class="grp" id="gigan" style="display: none;">
+										<label for="startDate" class="labelHidden">시작일 선택</label>
+										<select class="short" name="startDate" id="startDate" onchange="changeDate($(this))" title="시작일 선택" style="padding: 5px 8px;">
+										</select>
+										<span class="txt">~</span>
+										<label for="endDate" class="labelHidden">종료일 선택</label>
+										<select class="short" name="endDate" id="endDate" onchange="changeDate($(this))" title="종료일 선택" style="padding: 5px 8px;">
+										</select>
+									</div>
+									<div class="grp">
+										<span class="txt">구분 :</span>
+										<label for="gubun" class="labelHidden">구분 선택</label>
+										<select class="short" name="gubun" id="gubun" onchange="checkGubun('g');" title="구분 선택">
+											<option value="TRDE" selected>매매</option>
+											<option value="LFMT">전/월세</option>
+											<option value="LFMT_Y">전세</option>
+											<option value="LFMT_M">월세</option>
+										</select>
+									</div>
+									<div class="grp">
+										<span class="txt">유형 :</span>
+										<label for="bdsGbn" class="labelHidden">유형 선택</label>
+										<select name="bdsGbn" id="bdsGbn" onchange="checkGubun('v');" title="유형 선택">
+											<option value="ALL" selected>전체</option>
+											<option value="01">아파트</option>
+											<option value="06">분양권/입주권</option>
+											<option value="02">다세대/연립</option>
+											<option value="03">단독/다가구</option>
+											<option value="05">오피스텔</option>
+											<option value="04">토지/임야</option>
+											
+										</select>
+									</div>
+									<a href="javascript:list_deal(null)" class="gg-btn red" >검색</a>
+								</div>
+							</form>
+						</div>
+						<h3 class="title-s">경기도 부동산거래현황</h3>
+						<div class="gg-tbl-spc" id="chartDiv">
+							<div class="left gg-frm">
+								<span class="txt">비교년도 :</span>
+								<label for="cmprYear" class="labelHidden">비교년도 선택</label>
+								<select class="short" name="cmprYear" id="cmprYear" onchange="javascript:cmpr_deal();" title="비교년도 선택">
+								</select>
+							</div>
+							<label for="lineChart" class="labelHidden">경기도 부동산거래현황 차트</label>
+							<div id="lineChart">
+							</div>
+						</div>
+						<div class="gg-tbl">
+							<div id="listDealTotalCnt" class="totalCountBeforeCaption">합계 : 0건</div>
+							<table class="basic center" id="listDeal">
+								<caption id="listDealCaption">경기도 부동산거래현황</caption>
+								<thead class="thead_listDeal">
+									<tr class="theadTr2">
+										<th scope='col'>1월</th>
+										<th scope='col'>2월</th>
+										<th scope='col'>3월</th>
+										<th scope='col'>4월</th>
+										<th scope='col'>5월</th>
+										<th scope='col'>6월</th>
+										<th scope='col'>7월</th>
+										<th scope='col'>8월</th>
+										<th scope='col'>9월</th>
+										<th scope='col'>10월</th>
+										<th scope='col'>11월</th>
+										<th scope='col'>12월</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td colspan="12">해당 목록이 없습니다.</td>
+									</tr>
+								</tbody>
+							</table>
+							<div id="compareListDealTotalCnt" class="totalCountBeforeCaption">합계 : 0건</div>
+							<table class="basic center" id="compareListDeal">
+								<caption id="compareListDealCaption">경기도 부동산거래현황</caption>
+								<thead class="thead_compareListDeal">
+									<tr class="theadTr2">										
+										<th scope='col'>1월</th>
+										<th scope='col'>2월</th>
+										<th scope='col'>3월</th>
+										<th scope='col'>4월</th>
+										<th scope='col'>5월</th>
+										<th scope='col'>6월</th>
+										<th scope='col'>7월</th>
+										<th scope='col'>8월</th>
+										<th scope='col'>9월</th>
+										<th scope='col'>10월</th>
+										<th scope='col'>11월</th>
+										<th scope='col'>12월</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td colspan="12">해당 목록이 없습니다.</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+						<h3 class="title-s">시군별 부동산거래현황</h3>
+						<div class="gg-tbl-spc">
+							<div class="left">
+								<p>※ 시/군 클릭시 상세정보를 확인하실 수 있습니다.</p>
+							</div>
+							<div class="right">
+								<a class="gg-btn" href="javascript:downExcel()">EXCEL</a>
+							</div>
+						</div>
+						<div class="gg-tbl">
+							<table class="basic center" id="sggListDeal">
+								<caption class="hidden">월별 시군별 통계</caption>
+								<thead class="thead_month">
+									<tr class="theadTr2">
+										<th scope='col'>구분</th>
+										<th scope='col'>합계</th>
+										<th scope='col'>1월</th>
+										<th scope='col'>2월</th>
+										<th scope='col'>3월</th>
+										<th scope='col'>4월</th>
+										<th scope='col'>5월</th>
+										<th scope='col'>6월</th>
+										<th scope='col'>7월</th>
+										<th scope='col'>8월</th>
+										<th scope='col'>9월</th>
+										<th scope='col'>10월</th>
+										<th scope='col'>11월</th>
+										<th scope='col'>12월</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td colspan="14">해당 목록이 없습니다.</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>						
+					</div>
+				</div>
+			</div>
+		</div>
+
+<script id="listDealTmpl" type="text/x-jquery-tmpl">
+	<tr onclick="">
+		<td>{{html aa1}}</td>
+		<td>{{html aa2}}</td>
+		<td>{{html aa3}}</td>
+		<td>{{html aa4}}</td>
+		<td>{{html aa5}}</td>
+		<td>{{html aa6}}</td>
+		<td>{{html aa7}}</td>
+		<td>{{html aa8}}</td>
+		<td>{{html aa9}}</td>
+		<td>{{html aa10}}</td>
+		<td>{{html aa11}}</td>
+		<td>{{html aa12}}</td>
+	</tr>
+</script>
+
+<script id="sggListDealTmpl" type="text/x-jquery-tmpl">
+	{{if sggCd == "41110" || sggCd == "41130" || sggCd == "41460" || sggCd == "41270" || sggCd == "41170" || sggCd == "41280"}}		
+		<tr id="tr_{{html sggCd}}" onclick="showSgg('{{html sggCd}}','{{html sggNm}}','1','{{html totCnt}}')" style="cursor:pointer;">
+	{{else}}
+		<tr id="tr_{{html sggCd}}" onclick="showSgg('{{html sggCd}}','{{html sggNm}}','1','{{html totCnt}}')" style="cursor:pointer;" title="새창열림">
+	{{/if}} 
+		{{if sggNm == null}}
+			<td>총계</td>
+		{{else}}
+			<td style="color:blue; font-weight:bolder; text-decoration:underline;"><button type="button" class="transparent" onclick="">{{html sggNm}}</button></td>  
+		{{/if}}
+		<td>{{html totCnt}}</td>  
+		<td>{{html a1}}</td>
+		<td>{{html a2}}</td>
+		<td>{{html a3}}</td>
+		<td>{{html a4}}</td>
+		<td>{{html a5}}</td>
+		<td>{{html a6}}</td>
+		<td>{{html a7}}</td>
+		<td>{{html a8}}</td>
+		<td>{{html a9}}</td>
+		<td>{{html a10}}</td>
+		<td>{{html a11}}</td>
+		<td>{{html a12}}</td>
+	</tr>
+</script>
+
+<script id="listDealOtherTmpl" type="text/x-jquery-tmpl">
+	<tr onclick="">
+		<td>{{html aa1}}</td>
+		<td>{{html aa2}}</td>
+		<td>{{html aa3}}</td>
+		<td>{{html aa4}}</td>
+		<td>{{html aa5}}</td>
+		<td>{{html aa6}}</td>
+		<td>{{html aa7}}</td>
+		<td>{{html aa8}}</td>
+		<td>{{html aa9}}</td>
+		<td>{{html aa10}}</td>
+		<td>{{html aa11}}</td>
+		<td>{{html aa12}}</td>
+		<td>{{html aa13}}</td>
+	</tr>
+</script>
+
+<script id="sggListDealOtherTmpl" type="text/x-jquery-tmpl">
+	{{if sggCd == "41110" || sggCd == "41130" || sggCd == "41460" || sggCd == "41270" || sggCd == "41170" || sggCd == "41280"}}		
+		<tr id="tr_{{html sggCd}}" onclick="showSgg('{{html sggCd}}','{{html sggNm}}','1','{{html totCnt}}')" style="cursor:pointer;">
+	{{else}}
+		<tr id="tr_{{html sggCd}}" onclick="showSgg('{{html sggCd}}','{{html sggNm}}','1','{{html totCnt}}')" style="cursor:pointer;" title="새창열림">
+	{{/if}}
+		{{if sggNm == null}}
+			<td>총계</td>
+		{{else}}
+			<td style="color:blue; font-weight:bolder; text-decoration:underline;"><button type="button" class="transparent" onclick="">{{html sggNm}}</button></td>  
+		{{/if}}
+		<td>{{html totCnt}}</td>  
+		<td>{{html a1}}</td>
+		<td>{{html a2}}</td>
+		<td>{{html a3}}</td>
+		<td>{{html a4}}</td>
+		<td>{{html a5}}</td>
+		<td>{{html a6}}</td>
+		<td>{{html a7}}</td>
+		<td>{{html a8}}</td>
+		<td>{{html a9}}</td>
+		<td>{{html a10}}</td>
+		<td>{{html a11}}</td>
+		<td>{{html a12}}</td>
+		<td>{{html a13}}</td>
+	</tr>
+</script>
+ 
+<script id="emptyTmpl" type="text/x-jquery-tmpl">
+	<tr>
+		<td colspan="14" align="center">해당 목록이 없습니다.</td>
+	</tr>
+</script>
+
+<script id="emptyTmpl1" type="text/x-jquery-tmpl">
+	<tr>
+		<td colspan="12" align="center">해당 목록이 없습니다.</td>
+	</tr>
+</script>
+
+				
+		
+
+
+
+
+
+
+
+
+
+<footer>
+	<div class="wrap">
+		<p class="info">
+		<a href="/main/selectPrivacyView.do" target="_blank" style="color:#ff9900;">개인정보 처리방침</a>
+		<a href="https://gg.go.kr" target="_blank" style="margin-left: 20px;">경기도청</a>
+		<a href="/main/selectGovermentLicenseView.do" target="_blank" style="margin-left: 20px; color : yellow">저작권 정책</a>
+		<a href="https://www.gg.go.kr/contents/contents.do?ciIdx=1377&menuId=3187" target="_blank" style="margin-left: 20px; color: #fff;">찾아오시는길</a>
+		<span style="margin-left: 20px;">경기도 콜센터 031-120</span>
+		</p>
+		<div class="info">
+			<table>
+				<tbody>
+					<tr>
+						<td class="footerLogo"><img alt="경기부동산포털" src="/images/gris/footer/footerLogo.png"></td>
+						<td class="footerCopyright">
+							경기도청 (16508) 경기도 수원시 영통구 도청로 30 (이의동)<br>
+							경기부동산포털 운영지원센터 - 시스템 문의 031-8008-4977<br>
+							© GYEONGGI PROVINCE All Rights Reserved.
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="right">
+			<a class="mark-access" title="(사)한국장애인단체총연합회 한국웹접근성인증평가원 웹 접근성 우수사이트인증마크(WA인증마크)-새창열림" href="http://www.wa.or.kr/board/list.asp?BoardID=0006" target="_blank">과학기술정보통신부 WA WEB ACCESSIBILITY(새창열림)</a>
+		</div>
+		<button class="scroll-top" title="화면 상단으로"></button>
+	</div>
+</footer>			
+
+	</body>
+</html>

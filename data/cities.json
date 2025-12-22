@@ -1,12 +1,13 @@
 [
-  { "code": "gwangmyeong", "label": "광명시", "baseUrl": "https://eminwon.gm.go.kr" },
+  { "code": "gwangmyeong", "label": "광명시", "baseUrl": "https://eminwon.gm.go.kr", "sggCd": "41210" },
   {
     "code": "seongnam-bundang",
     "label": "성남시 분당구",
     "baseUrl": "https://eminwon.seongnam.go.kr",
     "legacyTls": true,
     "verifyTls": false,
-    "deptIncludes": ["분당구"]
+    "deptIncludes": ["분당구"],
+    "sggCd": "41135"
   },
   {
     "code": "seongnam-sujeong",
@@ -14,7 +15,8 @@
     "baseUrl": "https://eminwon.seongnam.go.kr",
     "legacyTls": true,
     "verifyTls": false,
-    "deptIncludes": ["수정구"]
+    "deptIncludes": ["수정구"],
+    "sggCd": "41133"
   },
   {
     "code": "seongnam-jungwon",
@@ -22,32 +24,37 @@
     "baseUrl": "https://eminwon.seongnam.go.kr",
     "legacyTls": true,
     "verifyTls": false,
-    "deptIncludes": ["중원구"]
+    "deptIncludes": ["중원구"],
+    "sggCd": "41131"
   },
   {
     "code": "suwon-youngtong",
     "label": "수원시 영통구",
     "baseUrl": "https://eminwon.suwon.go.kr",
-    "deptIncludes": ["영통구"]
+    "deptIncludes": ["영통구"],
+    "sggCd": "41115"
   },
   {
     "code": "suwon-jangan",
     "label": "수원시 장안구",
     "baseUrl": "https://eminwon.suwon.go.kr",
-    "deptIncludes": ["장안구"]
+    "deptIncludes": ["장안구"],
+    "sggCd": "41111"
   },
   {
     "code": "suwon-paldal",
     "label": "수원시 팔달구",
     "baseUrl": "https://eminwon.suwon.go.kr",
-    "deptIncludes": ["팔달구"]
+    "deptIncludes": ["팔달구"],
+    "sggCd": "41117"
   },
   {
     "code": "yongin-suji",
     "label": "용인시 수지구",
     "baseUrl": "https://eminwon.yongin.go.kr",
-    "deptIncludes": ["수지구"]
+    "deptIncludes": ["수지구"],
+    "sggCd": "41465"
   },
-  { "code": "uiwang", "label": "의왕시", "baseUrl": "https://eminwon.uiwang.go.kr" },
-  { "code": "hanam", "label": "하남시", "baseUrl": "https://eminwon.hanam.gyeonggi.kr" }
+  { "code": "uiwang", "label": "의왕시", "baseUrl": "https://eminwon.uiwang.go.kr", "sggCd": "41430" },
+  { "code": "hanam", "label": "하남시", "baseUrl": "https://eminwon.hanam.gyeonggi.kr", "sggCd": "41450" }
 ]

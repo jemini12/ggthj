@@ -7,6 +7,10 @@ export default async function handler(req, res) {
         acc[c.code] = c.label;
         return acc;
       }, {}),
+      sgg: cfg.reduce((acc, c) => {
+        if (c.sggCd) acc[c.code] = c.sggCd;
+        return acc;
+      }, {}),
     });
   } catch (err) {
     res.status(500).json({ error: err && err.message ? err.message : String(err) });

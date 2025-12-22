@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import CombinedChart from "../components/CombinedChart";
+import StackedChart from "../components/StackedChart";
 
 export async function getServerSideProps() {
   try {
@@ -9,9 +10,13 @@ export async function getServerSideProps() {
       acc[c.code] = c.label;
       return acc;
     }, {});
-    return { props: { initialCities: cities, initialLabels: labels } };
+    const sgg = cfg.reduce((acc, c) => {
+      if (c.sggCd) acc[c.code] = c.sggCd;
+      return acc;
+    }, {});
+    return { props: { initialCities: cities, initialLabels: labels, initialSgg: sgg } };
   } catch (err) {
-    return { props: { initialCities: [], initialLabels: {} } };
+    return { props: { initialCities: [], initialLabels: {}, initialSgg: {} } };
   }
 }
 
@@ -25,14 +30,24 @@ async function fetchJson(url) {
   return json;
 }
 
-export default function Home({ initialCities = [], initialLabels = {} }) {
+export default function Home({ initialCities = [], initialLabels = {}, initialSgg = {} }) {
   const [cities, setCities] = useState(initialCities);
   const [labels, setLabels] = useState(initialLabels);
+  const [sggMap, setSggMap] = useState(initialSgg);
   const [city, setCity] = useState(initialCities.includes("yongin") ? "yongin" : initialCities[0] || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [points, setPoints] = useState([]);
   const [updatedAt, setUpdatedAt] = useState("");
+
+  const [dealPoints, setDealPoints] = useState([]);
+  const [dealLoading, setDealLoading] = useState(false);
+  const [dealError, setDealError] = useState("");
+  const [offerSeries, setOfferSeries] = useState({ vm: [], vj: [], vw: [] });
+  const [offerLoading, setOfferLoading] = useState(false);
+  const [offerError, setOfferError] = useState("");
+
+  const MW_START = "2025-10-20";
 
   useEffect(() => {
     let mounted = true;
@@ -41,6 +56,7 @@ export default function Home({ initialCities = [], initialLabels = {} }) {
         if (!mounted) return;
         const list = data.cities || [];
         setLabels(data.labels || {});
+        setSggMap(data.sgg || {});
         setCities(list);
         setCity(list.includes("yongin") ? "yongin" : list[0] || "");
       })
@@ -80,9 +96,104 @@ export default function Home({ initialCities = [], initialLabels = {} }) {
     };
   }, [city]);
 
-  const total = useMemo(() => {
-    return (points || []).reduce((acc, p) => acc + (p.count || 0), 0);
+  const mwPoints = useMemo(() => {
+    return (points || []).filter((p) => (p.date || "") >= MW_START);
   }, [points]);
+
+  const total = useMemo(() => {
+    return (mwPoints || []).reduce((acc, p) => acc + (p.count || 0), 0);
+  }, [mwPoints]);
+
+  const Spinner = () => (
+    <svg className="h-4 w-4 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle className="opacity-20" cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+      <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+
+  useEffect(() => {
+    if (!city || !sggMap[city]) {
+      setDealPoints([]);
+      setDealError("거래량 데이터가 없는 지역입니다.");
+      return;
+    }
+    let mounted = true;
+    setDealLoading(true);
+    setDealError("");
+    (async () => {
+      try {
+        const y = new Date().getFullYear();
+        const data = await fetchJson(
+          `/api/deals?year=${y}&bdsGbn=01&gubun=TRDE&sggCd=${encodeURIComponent(sggMap[city])}`
+        );
+        if (!mounted) return;
+        const row =
+          (data.sggList && data.sggList.length && data.sggList[0]) ||
+          (data.monthList && data.monthList.length && data.monthList[0]) ||
+          null;
+        if (!row) {
+          setDealPoints([]);
+          throw new Error("거래량 데이터가 없습니다.");
+        }
+        const pts = [];
+        for (let i = 1; i <= 12; i++) {
+          const key = `a${i}`;
+          const raw = row[key] || "0";
+          const n = typeof raw === "string" ? parseInt(raw.replace(/,/g, ""), 10) : Number(raw) || 0;
+          const mm = String(i).padStart(2, "0");
+          pts.push({ date: `${y}-${mm}-01`, count: n });
+        }
+        setDealPoints(pts);
+      } catch (err) {
+        if (!mounted) return;
+        setDealError(err && err.message ? err.message : String(err));
+        setDealPoints([]);
+      } finally {
+        if (!mounted) return;
+        setDealLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [city, sggMap]);
+
+  useEffect(() => {
+    if (!city || !sggMap[city]) {
+      setOfferSeries({ vm: [], vj: [], vw: [] });
+      setOfferError("매물 데이터가 없는 지역입니다.");
+      return;
+    }
+    let mounted = true;
+    setOfferLoading(true);
+    setOfferError("");
+    (async () => {
+      try {
+        const now = new Date();
+        const y = now.getFullYear();
+        const url = `/api/offers?area=${encodeURIComponent(
+          sggMap[city]
+        )}&deal=123&mode=2&sY=${y}&sM=1&eY=${y}&eM=12`;
+        const data = await fetchJson(url);
+        if (!mounted) return;
+        const vm = [];
+        (data.points || []).forEach((p) => {
+          vm.push({ date: p.date, count: Number(p.vm || 0) || 0 });
+        });
+        setOfferSeries({ vm, vj: [], vw: [] });
+      } catch (err) {
+        if (!mounted) return;
+        setOfferError(err && err.message ? err.message : String(err));
+        setOfferSeries({ vm: [], vj: [], vw: [] });
+      } finally {
+        if (!mounted) return;
+        setOfferLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [city, sggMap]);
 
   const statusText = useMemo(() => {
     if (loading) return "불러오는 중…";
@@ -96,7 +207,7 @@ export default function Home({ initialCities = [], initialLabels = {} }) {
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">경기 토지거래계약허가 건수</h1>
           <p className="mt-2 text-sm text-slate-600">새올 민원 접수일자를 기준으로 일별 건수를 집계합니다.</p>
-          <p className="mt-1 text-xs text-slate-500">과천과 안양은 지원하지 않습니다.</p>
+          <p className="mt-1 text-xs text-slate-500">😓 과천과 안양은 지원하지 않습니다.</p>
         </div>
 
         <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm md:flex-row md:items-end md:justify-between">
@@ -134,7 +245,9 @@ export default function Home({ initialCities = [], initialLabels = {} }) {
                 {statusText === "오류" ? (
                   <span className="text-rose-500">{statusText}</span>
                 ) : statusText === "불러오는 중…" ? (
-                  <span className="text-slate-600">{statusText}</span>
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Spinner />
+                  </div>
                 ) : (
                   <span className="text-emerald-600">{statusText}</span>
                 )}
@@ -143,31 +256,28 @@ export default function Home({ initialCities = [], initialLabels = {} }) {
             <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
               <div className="text-xs font-medium text-slate-500">합계</div>
               <div className="mt-1 text-sm font-semibold text-slate-900">
-                {loading ? "불러오는 중…" : total.toLocaleString("ko-KR")}
+                {loading ? (
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Spinner />
+                  </div>
+                ) : (
+                  total.toLocaleString("ko-KR")
+                )}
               </div>
             </div>
             <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
               <div className="text-xs font-medium text-slate-500">업데이트</div>
               <div className="mt-1 flex items-center gap-2 text-sm text-slate-800">
                 {loading ? (
-                  <>
-                    <svg
-                      className="h-4 w-4 animate-spin text-blue-500"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <circle className="opacity-20" cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
-                      <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                    <span className="text-slate-600">불러오는 중…</span>
-                  </>
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Spinner />
+                  </div>
                 ) : updatedAt ? (
                   new Date(updatedAt).toLocaleString("ko-KR")
                 ) : (
                   "-"
                 )}
-              </div>
+            </div>
             </div>
           </div>
         </div>
@@ -179,15 +289,65 @@ export default function Home({ initialCities = [], initialLabels = {} }) {
         ) : null}
 
         <div className="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm">
-          <div className="mb-3 text-sm font-medium text-slate-700">일별 + 누적 그래프</div>
-          {points && points.length ? (
-            <CombinedChart points={points} />
+          <div className="mb-3 text-sm font-medium text-slate-700">
+            {labels[city] ? `${labels[city]} 토지거래계약허가 접수 건수` : "토지거래계약허가 접수 건수"}
+          </div>
+          {mwPoints && mwPoints.length ? (
+            <CombinedChart points={mwPoints} />
           ) : (
             <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
               데이터가 없습니다.
             </div>
           )}
         </div>
+
+        {Object.keys(sggMap || {}).length ? (
+          <div className="mt-8 rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm">
+            <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div className="text-sm font-medium text-slate-700">
+                {labels[city] ? `${labels[city]} 부동산 거래량 (아파트, 계약일 기준)` : "부동산 거래량 (아파트, 계약일 기준)"}
+              </div>
+            </div>
+            {dealError ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                {dealError}
+              </div>
+            ) : dealPoints && dealPoints.length ? (
+              <CombinedChart points={dealPoints} />
+            ) : dealLoading ? (
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+                불러오는 중…
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+                데이터가 없습니다.
+              </div>
+            )}
+          </div>
+        ) : null}
+
+        {Object.keys(sggMap || {}).length ? (
+          <div className="mt-8 rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm">
+            <div className="mb-3 text-sm font-medium text-slate-700">
+              {labels[city] ? `${labels[city]} 매매 매물 건수` : "매매 매물 건수"}
+            </div>
+            {offerError ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                {offerError}
+              </div>
+            ) : offerSeries.vm.length ? (
+              <StackedChart series={[{ label: "매매", color: "#3b82f6", points: offerSeries.vm }]} />
+            ) : offerLoading ? (
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+                <Spinner />
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+                데이터가 없습니다.
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
     </div>
   );

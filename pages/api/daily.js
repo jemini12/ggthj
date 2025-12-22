@@ -43,7 +43,7 @@ export default async function handler(req, res) {
     let refreshResult = null;
     if (!store || !store.cities || !store.cities[city]) {
       attemptedRefresh = true;
-      const fromYmd = process.env.BACKFILL_FROM || "2025-10-15";
+      const fromYmd = process.env.BACKFILL_FROM || "2025-10-20";
       const now = new Date();
       const todayUtc = new Date(
         Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
