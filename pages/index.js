@@ -104,6 +104,114 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
     return (mwPoints || []).reduce((acc, p) => acc + (p.count || 0), 0);
   }, [mwPoints]);
 
+  const dealTotal = useMemo(() => {
+    return (dealPoints || []).reduce((acc, p) => acc + (p.count || 0), 0);
+  }, [dealPoints]);
+
+  const offerTotal = useMemo(() => {
+    return (offerSeries.vm || []).reduce((acc, p) => acc + (p.count || 0), 0);
+  }, [offerSeries]);
+
+  function parseYmd(d) {
+    if (!d) return null;
+    const [y, m, day] = d.split("-").map((v) => parseInt(v, 10));
+    if (!y || !m || !day) return null;
+    const dt = new Date(Date.UTC(y, m - 1, day));
+    return Number.isNaN(dt.getTime()) ? null : dt;
+  }
+
+  function sumRange(pointsArr, start, end) {
+    if (!pointsArr || !pointsArr.length || !start || !end) return 0;
+    const startMs = start.getTime();
+    const endMs = end.getTime();
+    return pointsArr.reduce((acc, p) => {
+      const dt = parseYmd(p.date);
+      if (!dt) return acc;
+      const t = dt.getTime();
+      if (t >= startMs && t <= endMs) {
+        return acc + (p.count || 0);
+      }
+      return acc;
+    }, 0);
+  }
+
+  function latestInWindow(pointsArr, start, end) {
+    if (!pointsArr || !pointsArr.length || !start || !end) return 0;
+    const startMs = start.getTime();
+    const endMs = end.getTime();
+    let latest = 0;
+    let latestTime = -Infinity;
+    pointsArr.forEach((p) => {
+      const dt = parseYmd(p.date);
+      if (!dt) return;
+      const t = dt.getTime();
+      if (t >= startMs && t <= endMs && t > latestTime) {
+        latest = p.count || 0;
+        latestTime = t;
+      }
+    });
+    return latest;
+  }
+
+  const summaryLines = useMemo(() => {
+    const today = new Date();
+    const endWeek = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+    const startWeek = new Date(endWeek.getTime() - 6 * 24 * 60 * 60 * 1000);
+    const prevEndWeek = new Date(startWeek.getTime() - 1 * 24 * 60 * 60 * 1000);
+    const prevStartWeek = new Date(prevEndWeek.getTime() - 6 * 24 * 60 * 60 * 1000);
+
+    const mwThisWeek = sumRange(mwPoints, startWeek, endWeek);
+    const mwLastWeek = sumRange(mwPoints, prevStartWeek, prevEndWeek);
+
+    const dealMonthNow = (() => {
+      if (!dealPoints || !dealPoints.length) return 0;
+      const y = today.getFullYear();
+      const m = today.getMonth() + 1;
+      const key = `${y}-${String(m).padStart(2, "0")}-01`;
+      const found = dealPoints.find((p) => p.date === key);
+      return found ? found.count || 0 : 0;
+    })();
+    const dealMonthPrev = (() => {
+      if (!dealPoints || !dealPoints.length) return 0;
+      const prev = new Date(Date.UTC(today.getFullYear(), today.getMonth() - 1, 1));
+      const key = `${prev.getUTCFullYear()}-${String(prev.getUTCMonth() + 1).padStart(2, "0")}-01`;
+      const found = dealPoints.find((p) => p.date === key);
+      return found ? found.count || 0 : 0;
+    })();
+
+    const offerThisWeek = latestInWindow(offerSeries.vm, startWeek, endWeek);
+    const offerLastWeek = latestInWindow(offerSeries.vm, prevStartWeek, prevEndWeek);
+    const offerDiff = offerThisWeek - offerLastWeek;
+
+    const cityLabel = labels[city] || city || "선택된 지역";
+    const dateStr = new Intl.DateTimeFormat("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "short",
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(today);
+    const lines = [];
+    lines.push(`🧐 ${dateStr} 기준 ${cityLabel} 요약`);
+    lines.push(
+      `토지거래계약허가 접수: 이번 주 ${mwThisWeek.toLocaleString("ko-KR")}건 · 지난 주 ${mwLastWeek.toLocaleString(
+        "ko-KR"
+      )}건`
+    );
+    lines.push(
+      `거래량(아파트): 이번 달 ${dealMonthNow.toLocaleString("ko-KR")}건 · 지난 달 ${dealMonthPrev.toLocaleString(
+        "ko-KR"
+      )}건`
+    );
+    lines.push(
+      `매매 매물: 이번 주 ${offerThisWeek.toLocaleString("ko-KR")}건 · 지난 주 ${offerLastWeek.toLocaleString(
+        "ko-KR"
+      )}건 · 증감 ${offerDiff >= 0 ? "+" : ""}${offerDiff.toLocaleString("ko-KR")}건`
+    );
+    return lines;
+  }, [labels, city, total, dealTotal, offerTotal, mwPoints, dealPoints, offerSeries]);
+
   const Spinner = () => (
     <svg className="h-4 w-4 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle className="opacity-20" cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
@@ -287,6 +395,15 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
             {error}
           </div>
         ) : null}
+
+        <div className="mb-6 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+          <div className="mb-2 text-sm font-semibold text-slate-800">텍스트 요약</div>
+          <div className="space-y-1 text-sm text-slate-700">
+            {summaryLines.map((line, idx) => (
+              <div key={idx}>{line}</div>
+            ))}
+          </div>
+        </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm">
           <div className="mb-3 text-sm font-medium text-slate-700">

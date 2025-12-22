@@ -53,8 +53,14 @@ export default function StackedChart({ series, width = 1000, height = 380, pad =
   const hoverBar = hover != null ? bars[hover] : null;
 
   return (
-    <div className="w-full overflow-hidden">
-      <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} className="block">
+    <div className="w-full overflow-x-auto">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        width={width}
+        height={height}
+        className="block"
+        style={{ minWidth: 720 }}
+      >
         <rect x="0" y="0" width={width} height={height} fill="#ffffff" />
 
         {[0.25, 0.5, 0.75, 1].map((v, idx) => {

@@ -13,13 +13,18 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
   const [hoverIdx, setHoverIdx] = useState(null);
   const topPad = pad;
   const bottomPad = pad + 16;
+  const effectiveWidth = useMemo(() => {
+    const minWidth = 720;
+    const bars = points && points.length ? points.length * 14 : 0;
+    return Math.max(width, topPad * 2 + bars, minWidth);
+  }, [points, width, topPad]);
 
   const { bars, linePoints, countTicks, cumTicks, xTicks, maxCount, maxCum } = useMemo(() => {
     if (!points || points.length === 0) {
       return { bars: [], linePoints: [], countTicks: [], cumTicks: [], xTicks: [], maxCount: 0, maxCum: 0 };
     }
 
-    const plotW = width - topPad * 2;
+    const plotW = effectiveWidth - topPad * 2;
     const plotH = height - topPad - bottomPad;
     const counts = points.map((p) => p.count || 0);
     const maxCount = Math.max(...counts, 1);
@@ -83,14 +88,20 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
     });
 
     return { bars, linePoints, countTicks, cumTicks, xTicks, maxCount, maxCum };
-  }, [points, width, height, pad, showCumsum]);
+  }, [points, width, height, pad, showCumsum, effectiveWidth, topPad, bottomPad]);
 
   const hover = hoverIdx != null ? bars[hoverIdx] : null;
 
   return (
-    <div className="w-full overflow-hidden">
-      <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} className="block">
-        <rect x="0" y="0" width={width} height={height} fill="#ffffff" />
+    <div className="w-full overflow-x-auto">
+      <svg
+        viewBox={`0 0 ${effectiveWidth} ${height}`}
+        width={effectiveWidth}
+        height={height}
+        className="block"
+        style={{ minWidth: effectiveWidth }}
+      >
+        <rect x="0" y="0" width={effectiveWidth} height={height} fill="#ffffff" />
 
         {/* grid + axes */}
         {countTicks.map((v, idx) => {
