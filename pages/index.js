@@ -51,6 +51,10 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
   const [offerLoading, setOfferLoading] = useState(false);
   const [offerError, setOfferError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [fetchTimings, setFetchTimings] = useState({});
+  const [dailyReady, setDailyReady] = useState(false);
+  const [dealsReady, setDealsReady] = useState(false);
+  const [offersReady, setOffersReady] = useState(false);
 
   const MW_START = "2025-10-20";
 
@@ -99,14 +103,26 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
     if (!city) return;
     let mounted = true;
     setLoading(true);
+    setDailyReady(false);
     setError("");
     (async () => {
+      const start = typeof performance !== "undefined" ? performance.now() : Date.now();
       try {
         const data = await fetchJson(`/api/daily?city=${encodeURIComponent(city)}`);
         if (!mounted) return;
         setPoints(data.points || []);
         setUpdatedAt(data.updatedAt || "");
         setError("");
+        const end = typeof performance !== "undefined" ? performance.now() : Date.now();
+        const meta = data.meta || {};
+        const ms = Math.round(end - start);
+        setFetchTimings((prev) => ({
+          ...prev,
+          dailyMs: ms,
+          dailyAttemptedRefresh: !!meta.attemptedRefresh,
+          dailyStale: !!meta.stale,
+        }));
+        console.info("daily.fetch", { city, ms, meta });
       } catch (e) {
         if (!mounted) return;
         setError(e.message || String(e));
@@ -115,6 +131,7 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
       } finally {
         if (!mounted) return;
         setLoading(false);
+        setDailyReady(true);
       }
     })();
     return () => {
@@ -258,12 +275,15 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
     if (!city || !sggMap[city]) {
       setDealPoints([]);
       setDealError("거래량 데이터가 없는 지역입니다.");
+      setDealsReady(true);
       return;
     }
     let mounted = true;
     setDealLoading(true);
+    setDealsReady(false);
     setDealError("");
     (async () => {
+      const start = typeof performance !== "undefined" ? performance.now() : Date.now();
       try {
         const y = new Date().getFullYear();
         const data = await fetchJson(
@@ -287,6 +307,12 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
           pts.push({ date: `${y}-${mm}-01`, count: n });
         }
         setDealPoints(pts);
+        const end = typeof performance !== "undefined" ? performance.now() : Date.now();
+        setFetchTimings((prev) => ({
+          ...prev,
+          dealsMs: Math.round(end - start),
+        }));
+        console.info("deals.fetch", { city, ms: Math.round(end - start) });
       } catch (err) {
         if (!mounted) return;
         setDealError(err && err.message ? err.message : String(err));
@@ -294,6 +320,7 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
       } finally {
         if (!mounted) return;
         setDealLoading(false);
+        setDealsReady(true);
       }
     })();
     return () => {
@@ -305,12 +332,15 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
     if (!city || !sggMap[city]) {
       setOfferSeries({ vm: [], vj: [], vw: [] });
       setOfferError("매물 데이터가 없는 지역입니다.");
+      setOffersReady(true);
       return;
     }
     let mounted = true;
     setOfferLoading(true);
+    setOffersReady(false);
     setOfferError("");
     (async () => {
+      const start = typeof performance !== "undefined" ? performance.now() : Date.now();
       try {
         const now = new Date();
         const y = now.getFullYear();
@@ -324,6 +354,12 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
           vm.push({ date: p.date, count: Number(p.vm || 0) || 0 });
         });
         setOfferSeries({ vm, vj: [], vw: [] });
+        const end = typeof performance !== "undefined" ? performance.now() : Date.now();
+        setFetchTimings((prev) => ({
+          ...prev,
+          offersMs: Math.round(end - start),
+        }));
+        console.info("offers.fetch", { city, ms: Math.round(end - start) });
       } catch (err) {
         if (!mounted) return;
         setOfferError(err && err.message ? err.message : String(err));
@@ -331,6 +367,7 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
       } finally {
         if (!mounted) return;
         setOfferLoading(false);
+        setOffersReady(true);
       }
     })();
     return () => {
@@ -347,8 +384,9 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
   const summaryLoading = useMemo(() => {
     if (!city) return false;
     if (loading || dealLoading || offerLoading) return true;
+    if (!dailyReady || !dealsReady || !offersReady) return true;
     return false;
-  }, [city, loading, dealLoading, offerLoading]);
+  }, [city, loading, dealLoading, offerLoading, dailyReady, dealsReady, offersReady]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100">
