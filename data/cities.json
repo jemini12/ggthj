@@ -1,0 +1,53 @@
+[
+  { "code": "gwangmyeong", "label": "광명시", "baseUrl": "https://eminwon.gm.go.kr" },
+  {
+    "code": "seongnam-bundang",
+    "label": "성남시 분당구",
+    "baseUrl": "https://eminwon.seongnam.go.kr",
+    "legacyTls": true,
+    "verifyTls": false,
+    "deptIncludes": ["분당구"]
+  },
+  {
+    "code": "seongnam-sujeong",
+    "label": "성남시 수정구",
+    "baseUrl": "https://eminwon.seongnam.go.kr",
+    "legacyTls": true,
+    "verifyTls": false,
+    "deptIncludes": ["수정구"]
+  },
+  {
+    "code": "seongnam-jungwon",
+    "label": "성남시 중원구",
+    "baseUrl": "https://eminwon.seongnam.go.kr",
+    "legacyTls": true,
+    "verifyTls": false,
+    "deptIncludes": ["중원구"]
+  },
+  {
+    "code": "suwon-youngtong",
+    "label": "수원시 영통구",
+    "baseUrl": "https://eminwon.suwon.go.kr",
+    "deptIncludes": ["영통구"]
+  },
+  {
+    "code": "suwon-jangan",
+    "label": "수원시 장안구",
+    "baseUrl": "https://eminwon.suwon.go.kr",
+    "deptIncludes": ["장안구"]
+  },
+  {
+    "code": "suwon-paldal",
+    "label": "수원시 팔달구",
+    "baseUrl": "https://eminwon.suwon.go.kr",
+    "deptIncludes": ["팔달구"]
+  },
+  {
+    "code": "yongin-suji",
+    "label": "용인시 수지구",
+    "baseUrl": "https://eminwon.yongin.go.kr",
+    "deptIncludes": ["수지구"]
+  },
+  { "code": "uiwang", "label": "의왕시", "baseUrl": "https://eminwon.uiwang.go.kr" },
+  { "code": "hanam", "label": "하남시", "baseUrl": "https://eminwon.hanam.gyeonggi.kr" }
+]
