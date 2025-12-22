@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/router";
 import CombinedChart from "../components/CombinedChart";
 import StackedChart from "../components/StackedChart";
 
-export async function getServerSideProps() {
+export async function getServerSideProps(context) {
   try {
     const cfg = require("../data/cities.json");
     const cities = cfg.map((c) => c.code);
@@ -14,9 +15,11 @@ export async function getServerSideProps() {
       if (c.sggCd) acc[c.code] = c.sggCd;
       return acc;
     }, {});
-    return { props: { initialCities: cities, initialLabels: labels, initialSgg: sgg } };
+    const pathCity = context?.params?.city ? String(context.params.city) : "";
+    const initialCityFromPath = pathCity && cities.includes(pathCity) ? pathCity : "";
+    return { props: { initialCities: cities, initialLabels: labels, initialSgg: sgg, initialCityFromPath } };
   } catch (err) {
-    return { props: { initialCities: [], initialLabels: {}, initialSgg: {} } };
+    return { props: { initialCities: [], initialLabels: {}, initialSgg: {}, initialCityFromPath: "" } };
   }
 }
 
@@ -30,11 +33,12 @@ async function fetchJson(url) {
   return json;
 }
 
-export default function Home({ initialCities = [], initialLabels = {}, initialSgg = {} }) {
+export default function Home({ initialCities = [], initialLabels = {}, initialSgg = {}, initialCityFromPath = "" }) {
+  const router = useRouter();
   const [cities, setCities] = useState(initialCities);
   const [labels, setLabels] = useState(initialLabels);
   const [sggMap, setSggMap] = useState(initialSgg);
-  const [city, setCity] = useState(initialCities.includes("yongin") ? "yongin" : initialCities[0] || "");
+  const [city, setCity] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [points, setPoints] = useState([]);
@@ -46,6 +50,7 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
   const [offerSeries, setOfferSeries] = useState({ vm: [], vj: [], vw: [] });
   const [offerLoading, setOfferLoading] = useState(false);
   const [offerError, setOfferError] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const MW_START = "2025-10-20";
 
@@ -58,7 +63,10 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
         setLabels(data.labels || {});
         setSggMap(data.sgg || {});
         setCities(list);
-        setCity(list.includes("yongin") ? "yongin" : list[0] || "");
+        const queryCity = router.query.city ? String(router.query.city) : "";
+        const initial =
+          initialCityFromPath && list.includes(initialCityFromPath) ? initialCityFromPath : queryCity && list.includes(queryCity) ? queryCity : "";
+        if (initial) setCity(initial);
       })
       .catch((e) => {
         if (!mounted) return;
@@ -68,6 +76,24 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    if (!cities.length) return;
+    const queryCity = router.query.city ? String(router.query.city) : "";
+    if (queryCity && cities.includes(queryCity) && queryCity !== city) {
+      setCity(queryCity);
+      return;
+    }
+  }, [router.isReady, router.query.city, cities, city]);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const queryCity = router.query.city ? String(router.query.city) : "";
+    if (queryCity && cities.includes(queryCity) && queryCity !== city) {
+      setCity(queryCity);
+    }
+  }, [router.isReady, router.query.city, cities, city]);
 
   useEffect(() => {
     if (!city) return;
@@ -162,6 +188,7 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
 
     const mwThisWeek = sumRange(mwPoints, startWeek, endWeek);
     const mwLastWeek = sumRange(mwPoints, prevStartWeek, prevEndWeek);
+    const mwDiff = mwThisWeek - mwLastWeek;
 
     const dealMonthNow = (() => {
       if (!dealPoints || !dealPoints.length) return 0;
@@ -178,6 +205,7 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
       const found = dealPoints.find((p) => p.date === key);
       return found ? found.count || 0 : 0;
     })();
+    const dealDiff = dealMonthNow - dealMonthPrev;
 
     const offerThisWeek = latestInWindow(offerSeries.vm, startWeek, endWeek);
     const offerLastWeek = latestInWindow(offerSeries.vm, prevStartWeek, prevEndWeek);
@@ -189,20 +217,27 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
       month: "long",
       day: "numeric",
       weekday: "short",
-      hour: "numeric",
-      minute: "2-digit",
-    }).format(today);
+    })
+      .formatToParts(today)
+      .map((p) => {
+        if (p.type === "literal") return p.value.trim();
+        if (p.type === "weekday") return `(${p.value})`;
+        return p.value;
+      })
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
     const lines = [];
     lines.push(`🧐 ${dateStr} 기준 ${cityLabel} 요약`);
     lines.push(
       `토지거래계약허가 접수: 이번 주 ${mwThisWeek.toLocaleString("ko-KR")}건 · 지난 주 ${mwLastWeek.toLocaleString(
         "ko-KR"
-      )}건`
+      )}건 · 증감 ${mwDiff >= 0 ? "+" : ""}${mwDiff.toLocaleString("ko-KR")}건`
     );
     lines.push(
       `거래량(아파트): 이번 달 ${dealMonthNow.toLocaleString("ko-KR")}건 · 지난 달 ${dealMonthPrev.toLocaleString(
         "ko-KR"
-      )}건`
+      )}건 · 증감 ${dealDiff >= 0 ? "+" : ""}${dealDiff.toLocaleString("ko-KR")}건`
     );
     lines.push(
       `매매 매물: 이번 주 ${offerThisWeek.toLocaleString("ko-KR")}건 · 지난 주 ${offerLastWeek.toLocaleString(
@@ -324,10 +359,21 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
             <div className="relative w-full md:w-72">
               <select
                 value={city}
-                onChange={(e) => setCity(e.target.value)}
+                onChange={(e) => {
+                  const nextCity = e.target.value;
+                  setCity(nextCity);
+                  if (nextCity) {
+                    router.replace(`/${nextCity}`, undefined, { shallow: true });
+                  } else {
+                    router.replace(`/`, undefined, { shallow: true });
+                  }
+                }}
                 disabled={!cities.length}
                 className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 py-2 pr-9 text-sm text-slate-900 shadow-sm outline-none ring-0 transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:bg-slate-100"
               >
+                <option value="" disabled={!!city}>
+                  지역을 선택하세요
+                </option>
                 {cities.map((c) => (
                   <option key={c} value={c}>
                     {labels[c] ? labels[c] : c}
@@ -396,20 +442,52 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
           </div>
         ) : null}
 
-        <div className="mb-6 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
-          <div className="mb-2 text-sm font-semibold text-slate-800">텍스트 요약</div>
-          <div className="space-y-1 text-sm text-slate-700">
-            {summaryLines.map((line, idx) => (
-              <div key={idx}>{line}</div>
-            ))}
+        {city ? (
+          <div className="mb-6 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <div className="text-sm font-semibold text-slate-800">텍스트 요약</div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  const text = summaryLines.join("\n");
+                  navigator.clipboard &&
+                    navigator.clipboard
+                      .writeText(text)
+                      .then(() => {
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 800);
+                      })
+                      .catch(() => {});
+                }}
+                className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-xs shadow-sm transition hover:border-blue-300 hover:text-blue-600 ${
+                  copied
+                    ? "border-blue-300 bg-blue-50 text-blue-700 ring-2 ring-blue-200"
+                    : "border-slate-200 bg-white text-slate-700"
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 16h8m-8-4h8M8 8h8m-6-5h8a2 2 0 012 2v14a2 2 0 01-2 2H8l-6-6V5a2 2 0 012-2h4z" />
+                </svg>
+                복사
+              </button>
+            </div>
+            <div className="space-y-1 text-sm text-slate-700">
+              {summaryLines.map((line, idx) => (
+                <div key={idx}>{line}</div>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : null}
 
         <div className="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm">
           <div className="mb-3 text-sm font-medium text-slate-700">
             {labels[city] ? `${labels[city]} 토지거래계약허가 접수 건수` : "토지거래계약허가 접수 건수"}
           </div>
-          {mwPoints && mwPoints.length ? (
+          {!city ? (
+            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+              지역을 선택하세요.
+            </div>
+          ) : mwPoints && mwPoints.length ? (
             <CombinedChart points={mwPoints} />
           ) : (
             <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
@@ -425,7 +503,11 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
                 {labels[city] ? `${labels[city]} 부동산 거래량 (아파트, 계약일 기준)` : "부동산 거래량 (아파트, 계약일 기준)"}
               </div>
             </div>
-            {dealError ? (
+            {!city ? (
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+                지역을 선택하세요.
+              </div>
+            ) : dealError ? (
               <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
                 {dealError}
               </div>
@@ -448,7 +530,11 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
             <div className="mb-3 text-sm font-medium text-slate-700">
               {labels[city] ? `${labels[city]} 매매 매물 건수` : "매매 매물 건수"}
             </div>
-            {offerError ? (
+            {!city ? (
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+                지역을 선택하세요.
+              </div>
+            ) : offerError ? (
               <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
                 {offerError}
               </div>
