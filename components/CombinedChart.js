@@ -27,7 +27,7 @@ function formatInt(n) {
   return new Intl.NumberFormat("ko-KR").format(n);
 }
 
-export default function CombinedChart({ points, width = 1000, height = 380, pad = 52, showCumsum = true, showMarkers = true }) {
+export default function CombinedChart({ points, width = 1000, height = 380, pad = 52, showCumsum = true, showMarkers = true, showStatus = true }) {
   const [hoverIdx, setHoverIdx] = useState(null);
   const leftPad = pad + 8;
   const rightPad = Math.max(32, pad - 12);
@@ -75,9 +75,11 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
       const x = leftPad + i * barW;
       const w = Math.max(1, barW - 1);
 
-      const sCounts = p.status || { "처리중": p.count || 0 };
+      const sCounts = showStatus ? (p.status || { "처리중": p.count || 0 }) : { "_total": p.count || 0 };
       let currentYOffset = 0;
-      const stacks = STATUSES.map(status => {
+
+      const statusList = showStatus ? STATUSES : ["_total"];
+      const stacks = statusList.map(status => {
         const val = sCounts[status] || 0;
         if (val === 0) return null;
         const h = (plotH * val) / countScaleMax;
@@ -135,7 +137,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
     }
 
     return { barGroups, linePoints, countTicks, cumTicks, xTicks, markers, maxCount: countScaleMax, maxCum: cumScaleMax };
-  }, [points, width, height, pad, showCumsum, showMarkers, effectiveWidth, topPad, bottomPad, leftPad, rightPad]);
+  }, [points, width, height, pad, showCumsum, showMarkers, showStatus, effectiveWidth, topPad, bottomPad, leftPad, rightPad]);
 
   const hover = hoverIdx != null ? barGroups[hoverIdx] : null;
 
@@ -204,7 +206,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
                   y={s.y}
                   width={s.w}
                   height={s.h}
-                  fill={i === hoverIdx ? "#fde68a" : COLORS[s.status]}
+                  fill={i === hoverIdx ? "#fde68a" : (COLORS[s.status] || "#3b82f6")}
                   stroke={i === hoverIdx ? "#f59e0b" : "none"}
                   opacity={0.85}
                 />
@@ -307,35 +309,46 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
                 {hover.date}
               </text>
 
-              {STATUSES.map((s, si) => {
-                const val = (hover.status && hover.status[s]) || 0;
-                return (
-                  <text
-                    key={s}
-                    x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
-                    y={topPad + 25 + si * 16}
-                    fontSize="11"
-                    fill={COLORS[s]}
-                  >
-                    ● {s}: {formatInt(val)}건
-                  </text>
-                );
-              })}
+              {showStatus ? (
+                STATUSES.map((s, si) => {
+                  const val = (hover.status && hover.status[s]) || 0;
+                  return (
+                    <text
+                      key={s}
+                      x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
+                      y={topPad + 25 + si * 16}
+                      fontSize="11"
+                      fill={COLORS[s]}
+                    >
+                      ● {s}: {formatInt(val)}건
+                    </text>
+                  );
+                })
+              ) : (
+                <text
+                  x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
+                  y={topPad + 25}
+                  fontSize="11"
+                  fill="#94a3b8"
+                >
+                  ● 건수: {formatInt(hover.count)}건
+                </text>
+              )}
 
               <text
                 x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
-                y={topPad + 25 + STATUSES.length * 16}
+                y={topPad + 25 + (showStatus ? STATUSES.length * 16 : 20)}
                 fontSize="11"
                 fill="#e5e7eb"
                 fontWeight="bold"
               >
-                합계: {formatInt(hover.count)}건
+                {showStatus ? `합계: ${formatInt(hover.count)}건` : ""}
               </text>
 
               {showCumsum && linePoints[hoverIdx] && (
                 <text
                   x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
-                  y={topPad + 45 + STATUSES.length * 16}
+                  y={topPad + (showStatus ? 45 + STATUSES.length * 16 : 50)}
                   fontSize="11"
                   fill="#f97316"
                 >
@@ -348,7 +361,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
       </div>
 
       <div className="mt-4 flex flex-wrap justify-center gap-6">
-        {STATUSES.map((s) => (
+        {showStatus && STATUSES.map((s) => (
           <div key={s} className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full" style={{ backgroundColor: COLORS[s] }} />
             <span className="text-xs font-medium text-slate-600">{s}</span>

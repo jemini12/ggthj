@@ -583,7 +583,7 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
                 <div className="mt-2">데이터를 불러오는 중…</div>
               </div>
             ) : dealPoints && dealPoints.length ? (
-              <CombinedChart points={dealPoints} showMarkers={false} />
+              <CombinedChart points={dealPoints} showMarkers={false} showStatus={false} />
             ) : (
               <div className="flex h-[400px] items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
                 데이터가 없습니다.
