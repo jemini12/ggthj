@@ -198,13 +198,21 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
 
   const summaryLines = useMemo(() => {
     const today = new Date();
-    const endWeek = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
-    const startWeek = new Date(endWeek.getTime() - 6 * 24 * 60 * 60 * 1000);
-    const prevEndWeek = new Date(startWeek.getTime() - 1 * 24 * 60 * 60 * 1000);
-    const prevStartWeek = new Date(prevEndWeek.getTime() - 6 * 24 * 60 * 60 * 1000);
+    const todayUtc = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
 
-    const mwThisWeek = sumRange(mwPoints, startWeek, endWeek);
-    const mwLastWeek = sumRange(mwPoints, prevStartWeek, prevEndWeek);
+    // Find this week's Monday (Monday=1 in JS, Sunday=0)
+    // d.getUTCDay(): 0 (Sun) to 6 (Sat)
+    const dayOfWeek = todayUtc.getUTCDay();
+    const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const startThisWeek = new Date(todayUtc.getTime() + diffToMon * 24 * 60 * 60 * 1000);
+    const endThisWeek = todayUtc;
+
+    // Last week: Previous Monday to previous Sunday
+    const startLastWeek = new Date(startThisWeek.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const endLastWeek = new Date(startThisWeek.getTime() - 1 * 24 * 60 * 60 * 1000);
+
+    const mwThisWeek = sumRange(mwPoints, startThisWeek, endThisWeek);
+    const mwLastWeek = sumRange(mwPoints, startLastWeek, endLastWeek);
     const mwDiff = mwThisWeek - mwLastWeek;
 
     const dealMonthNow = (() => {
@@ -224,8 +232,8 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
     })();
     const dealDiff = dealMonthNow - dealMonthPrev;
 
-    const offerThisWeek = latestInWindow(offerSeries.vm, startWeek, endWeek);
-    const offerLastWeek = latestInWindow(offerSeries.vm, prevStartWeek, prevEndWeek);
+    const offerThisWeek = latestInWindow(offerSeries.vm, startThisWeek, endThisWeek);
+    const offerLastWeek = latestInWindow(offerSeries.vm, startLastWeek, endLastWeek);
     const offerDiff = offerThisWeek - offerLastWeek;
 
     const cityLabel = labels[city] || city || "선택된 지역";
@@ -261,6 +269,7 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
         "ko-KR"
       )}건 · 증감 ${offerDiff >= 0 ? "+" : ""}${offerDiff.toLocaleString("ko-KR")}건`
     );
+    lines.push(`🔗 https://ggthj.vercel.app/${city}`);
     return lines;
   }, [labels, city, total, dealTotal, offerTotal, mwPoints, dealPoints, offerSeries]);
 
@@ -475,7 +484,7 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
                 ) : (
                   "-"
                 )}
-            </div>
+              </div>
             </div>
           </div>
         </div>
@@ -501,16 +510,14 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
                         setCopied(true);
                         setTimeout(() => setCopied(false), 800);
                       })
-                      .catch(() => {});
+                      .catch(() => { });
                 }}
                 disabled={summaryLoading}
-                className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-xs shadow-sm transition hover:border-blue-300 hover:text-blue-600 ${
-                  summaryLoading ? "cursor-not-allowed opacity-60" : ""
-                } ${
-                  copied
+                className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-xs shadow-sm transition hover:border-blue-300 hover:text-blue-600 ${summaryLoading ? "cursor-not-allowed opacity-60" : ""
+                  } ${copied
                     ? "border-blue-300 bg-blue-50 text-blue-700 ring-2 ring-blue-200"
                     : "border-slate-200 bg-white text-slate-700"
-                }`}
+                  }`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 16h8m-8-4h8M8 8h8m-6-5h8a2 2 0 012 2v14a2 2 0 01-2 2H8l-6-6V5a2 2 0 012-2h4z" />
@@ -538,13 +545,18 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
             {labels[city] ? `${labels[city]} 토지거래계약허가 접수 건수` : "토지거래계약허가 접수 건수"}
           </div>
           {!city ? (
-            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+            <div className="flex h-[400px] items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
               지역을 선택하세요.
+            </div>
+          ) : loading ? (
+            <div className="flex h-[400px] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+              <Spinner />
+              <div className="mt-2">데이터를 불러오는 중…</div>
             </div>
           ) : mwPoints && mwPoints.length ? (
             <CombinedChart points={mwPoints} />
           ) : (
-            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+            <div className="flex h-[400px] items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
               데이터가 없습니다.
             </div>
           )}
@@ -565,14 +577,15 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
               <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
                 {dealError}
               </div>
-            ) : dealPoints && dealPoints.length ? (
-              <CombinedChart points={dealPoints} />
             ) : dealLoading ? (
-              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
-                불러오는 중…
+              <div className="flex h-[400px] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+                <Spinner />
+                <div className="mt-2">데이터를 불러오는 중…</div>
               </div>
+            ) : dealPoints && dealPoints.length ? (
+              <CombinedChart points={dealPoints} showMarkers={false} />
             ) : (
-              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+              <div className="flex h-[400px] items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
                 데이터가 없습니다.
               </div>
             )}
@@ -592,14 +605,15 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
               <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
                 {offerError}
               </div>
+            ) : offerLoading ? (
+              <div className="flex h-[300px] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+                <Spinner />
+                <div className="mt-2">데이터를 불러오는 중…</div>
+              </div>
             ) : offerSeries.vm.length ? (
               <StackedChart series={[{ label: "매매", color: "#3b82f6", points: offerSeries.vm }]} />
-            ) : offerLoading ? (
-              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
-                <Spinner />
-              </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+              <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
                 데이터가 없습니다.
               </div>
             )}

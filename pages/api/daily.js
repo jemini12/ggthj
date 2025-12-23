@@ -38,10 +38,16 @@ export default async function handler(req, res) {
     let store = await loadStoreCached({ ymd: today });
 
     // If today's blob is missing or doesn't contain this city, do a full refresh for this city.
+    // Also force refresh if the data is in the old format (missing status counts for non-zero points).
+    const needsRefresh = !store || !store.cities || !store.cities[city] || (
+      store.cities[city].points &&
+      store.cities[city].points.some(p => (p.count || 0) > 0 && !p.status)
+    );
+
     let attemptedRefresh = false;
     let refreshError = null;
     let refreshResult = null;
-    if (!store || !store.cities || !store.cities[city]) {
+    if (needsRefresh) {
       attemptedRefresh = true;
       const fromYmd = process.env.BACKFILL_FROM || "2025-10-20";
       const now = new Date();

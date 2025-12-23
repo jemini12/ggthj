@@ -27,21 +27,29 @@ function formatInt(n) {
   return new Intl.NumberFormat("ko-KR").format(n);
 }
 
-export default function CombinedChart({ points, width = 1000, height = 380, pad = 52, showCumsum = true }) {
+export default function CombinedChart({ points, width = 1000, height = 380, pad = 52, showCumsum = true, showMarkers = true }) {
   const [hoverIdx, setHoverIdx] = useState(null);
   const leftPad = pad + 8;
   const rightPad = Math.max(32, pad - 12);
   const topPad = pad + 8;
   const bottomPad = pad + 16;
+
+  const STATUSES = ["처리중", "해결", "취하"];
+  const COLORS = {
+    "처리중": "#3b82f6",
+    "해결": "#10b981",
+    "취하": "#ef4444",
+  };
+
   const effectiveWidth = useMemo(() => {
     const minWidth = 720;
     const bars = points && points.length ? points.length * 14 : 0;
     return Math.max(width, leftPad + rightPad + bars, minWidth);
   }, [points, width, leftPad, rightPad]);
 
-  const { bars, linePoints, countTicks, cumTicks, xTicks, maxCount, maxCum } = useMemo(() => {
+  const { barGroups, linePoints, countTicks, cumTicks, xTicks, markers, maxCount, maxCum } = useMemo(() => {
     if (!points || points.length === 0) {
-      return { bars: [], linePoints: [], countTicks: [], cumTicks: [], xTicks: [], maxCount: 0, maxCum: 0 };
+      return { barGroups: [], linePoints: [], countTicks: [], cumTicks: [], xTicks: [], markers: [], maxCount: 0, maxCum: 0 };
     }
 
     const plotW = effectiveWidth - leftPad - rightPad;
@@ -63,19 +71,30 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
     const countScaleMax = Math.max(...countTicks, maxCount, 1);
 
     const barW = points.length ? plotW / points.length : plotW;
-    const bars = points.map((p, i) => {
+    const barGroups = points.map((p, i) => {
       const x = leftPad + i * barW;
-      const h = (plotH * p.count) / countScaleMax;
-      const y = topPad + (plotH - h);
-      return { ...p, x, y, w: Math.max(1, barW - 1), h };
+      const w = Math.max(1, barW - 1);
+
+      const sCounts = p.status || { "처리중": p.count || 0 };
+      let currentYOffset = 0;
+      const stacks = STATUSES.map(status => {
+        const val = sCounts[status] || 0;
+        if (val === 0) return null;
+        const h = (plotH * val) / countScaleMax;
+        const y = topPad + plotH - (currentYOffset + h);
+        currentYOffset += h;
+        return { status, h, y, w, x };
+      }).filter(Boolean);
+
+      return { ...p, x, w, stacks, count: p.count || 0, status: sCounts };
     });
 
     const linePoints = showCumsum
       ? cumsum.map((p, i) => {
-          const x = leftPad + (points.length === 1 ? plotW / 2 : (plotW / (points.length - 1)) * i);
-          const y = topPad + plotH * (1 - p.total / Math.max(1, maxCum));
-          return { ...p, x, y };
-        })
+        const x = leftPad + (points.length === 1 ? plotW / 2 : (plotW / (points.length - 1)) * i);
+        const y = topPad + plotH * (1 - p.total / Math.max(1, maxCum));
+        return { ...p, x, y };
+      })
       : [];
 
     const cumTicks = [];
@@ -100,142 +119,248 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
       }
     });
 
-    return { bars, linePoints, countTicks, cumTicks, xTicks, maxCount: countScaleMax, maxCum: cumScaleMax };
-  }, [points, width, height, pad, showCumsum, effectiveWidth, topPad, bottomPad, leftPad, rightPad]);
+    // Vertical markers aligned to the LATEST date in the chart
+    const markers = [];
+    if (showMarkers && points.length > 0) {
+      const latestDateStr = points[points.length - 1].date;
+      const latestDate = parseDate(latestDateStr);
+      [10, 20, 30].forEach((days) => {
+        const target = new Date(latestDate.getTime() - days * 24 * 60 * 60 * 1000);
+        const targetYmd = target.toISOString().split("T")[0];
+        const match = barGroups.find((b) => b.date === targetYmd);
+        if (match) {
+          markers.push({ x: match.x + match.w / 2, label: `-${days}일` });
+        }
+      });
+    }
 
-  const hover = hoverIdx != null ? bars[hoverIdx] : null;
+    return { barGroups, linePoints, countTicks, cumTicks, xTicks, markers, maxCount: countScaleMax, maxCum: cumScaleMax };
+  }, [points, width, height, pad, showCumsum, showMarkers, effectiveWidth, topPad, bottomPad, leftPad, rightPad]);
+
+  const hover = hoverIdx != null ? barGroups[hoverIdx] : null;
 
   return (
-    <div className="w-full overflow-x-auto">
-      <svg
-        viewBox={`0 0 ${effectiveWidth} ${height}`}
-        width={effectiveWidth}
-        height={height}
-        className="block"
-        style={{ minWidth: effectiveWidth }}
-      >
-        <rect x="0" y="0" width={effectiveWidth} height={height} fill="#ffffff" />
+    <div className="w-full">
+      <div className="overflow-x-auto">
+        <svg
+          viewBox={`0 0 ${effectiveWidth} ${height}`}
+          width={effectiveWidth}
+          height={height}
+          className="block"
+          style={{ minWidth: effectiveWidth }}
+        >
+          <rect x="0" y="0" width={effectiveWidth} height={height} fill="#ffffff" />
 
-        {/* grid + axes */}
-        {countTicks.map((v, idx) => {
-          const y = topPad + (height - topPad - bottomPad) * (1 - v / Math.max(1, maxCount));
-          return (
-            <g key={`count-${idx}`}>
-              <line x1={leftPad} x2={effectiveWidth - rightPad} y1={y} y2={y} stroke="rgba(15,23,42,0.08)" />
-              <text x={leftPad - 10} y={y + 4} textAnchor="end" fontSize="11" fill="rgba(15,23,42,0.7)">
-                {formatInt(v)}
-              </text>
-            </g>
-          );
-        })}
-
-        {showCumsum &&
-          cumTicks.map((v, idx) => {
-            const y = topPad + (height - topPad - bottomPad) * (1 - v / Math.max(1, maxCum));
+          {/* grid lines */}
+          {countTicks.map((v, idx) => {
+            const y = topPad + (height - topPad - bottomPad) * (1 - v / Math.max(1, maxCount));
             return (
-              <text
-                key={`cum-${idx}`}
-                x={effectiveWidth - rightPad + 8}
-                y={y + 4}
-                textAnchor="start"
-                fontSize="11"
-                fill="rgba(234,88,12,0.8)"
-              >
+              <line key={`grid-${idx}`} x1={leftPad} x2={effectiveWidth - rightPad} y1={y} y2={y} stroke="rgba(15,23,42,0.06)" />
+            );
+          })}
+
+          {/* y-axis labels */}
+          {countTicks.map((v, idx) => {
+            const y = topPad + (height - topPad - bottomPad) * (1 - v / Math.max(1, maxCount));
+            return (
+              <text key={`label-${idx}`} x={leftPad - 10} y={y + 4} textAnchor="end" fontSize="11" fill="rgba(15,23,42,0.7)">
                 {formatInt(v)}
               </text>
             );
           })}
 
-        <line x1={leftPad} x2={leftPad} y1={topPad} y2={height - bottomPad} stroke="rgba(15,23,42,0.2)" />
-        {/* cumulative y-axis line removed to reduce visual clutter */}
-        <line x1={leftPad} x2={effectiveWidth - rightPad} y1={height - bottomPad} y2={height - bottomPad} stroke="rgba(15,23,42,0.2)" />
+          {showCumsum &&
+            cumTicks.map((v, idx) => {
+              const y = topPad + (height - topPad - bottomPad) * (1 - v / Math.max(1, maxCum));
+              return (
+                <text
+                  key={`cum-${idx}`}
+                  x={effectiveWidth - rightPad + 8}
+                  y={y + 4}
+                  textAnchor="start"
+                  fontSize="11"
+                  fill="rgba(234,88,12,0.8)"
+                >
+                  {formatInt(v)}
+                </text>
+              );
+            })}
 
-        {/* bars */}
-        {bars.map((b, i) => (
-          <rect
-            key={b.date + i}
-            x={b.x}
-            y={b.y}
-            width={b.w}
-            height={b.h}
-            fill={i === hoverIdx ? "#f59e0b" : "#3b82f6"}
-            opacity={0.85}
-            onMouseEnter={() => setHoverIdx(i)}
-            onMouseLeave={() => setHoverIdx(null)}
-          />
-        ))}
+          <line x1={leftPad} x2={leftPad} y1={topPad} y2={height - bottomPad} stroke="rgba(15,23,42,0.1)" />
+          <line x1={leftPad} x2={effectiveWidth - rightPad} y1={height - bottomPad} y2={height - bottomPad} stroke="rgba(15,23,42,0.1)" />
 
-        {/* cumulative line */}
-        {showCumsum && linePoints.length ? (
-          <path
-            d={linePoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ")}
-            fill="none"
-            stroke="#ea580c"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-        ) : null}
-
-        {showCumsum &&
-          linePoints.map((p, i) => (
-            <circle
-              key={p.date + i}
-              cx={p.x}
-              cy={p.y}
-              r={i === hoverIdx ? 5 : 3}
-              fill={i === hoverIdx ? "#3b82f6" : "#ea580c"}
-              stroke="rgba(15,23,42,0.25)"
-              strokeWidth="1"
-            />
+          {/* bars */}
+          {barGroups.map((group, i) => (
+            <g
+              key={group.date + i}
+              onMouseEnter={() => setHoverIdx(i)}
+              onMouseLeave={() => setHoverIdx(null)}
+              className="cursor-pointer"
+            >
+              {group.stacks.map((s, si) => (
+                <rect
+                  key={s.status + si}
+                  x={s.x}
+                  y={s.y}
+                  width={s.w}
+                  height={s.h}
+                  fill={i === hoverIdx ? "#fde68a" : COLORS[s.status]}
+                  stroke={i === hoverIdx ? "#f59e0b" : "none"}
+                  opacity={0.85}
+                />
+              ))}
+              {/* Invisible area for easier hover */}
+              <rect
+                x={group.x}
+                y={topPad}
+                width={group.w}
+                height={height - topPad - bottomPad}
+                fill="transparent"
+              />
+            </g>
           ))}
 
-        {/* x ticks */}
-        {xTicks.map((t, idx) => (
-          <g key={idx} transform={`translate(${t.x},${height - bottomPad})`}>
-            <line y1="0" y2="6" stroke="rgba(15,23,42,0.25)" />
-            <text
-              y="18"
-              textAnchor="end"
-              fontSize="11"
-              fill="rgba(15,23,42,0.7)"
-              transform="rotate(-45)"
-            >
-              {t.label}
-            </text>
-          </g>
-        ))}
-
-        {hover && showCumsum ? (
-          <g>
-            <rect
-              x={Math.min(effectiveWidth - rightPad - 230, Math.max(leftPad, hover.x + 10))}
-              y={pad + 6}
-              width="220"
-              height="64"
-              rx="12"
-              fill="rgba(15,23,42,0.9)"
-              stroke="rgba(255,255,255,0.08)"
+          {/* cumulative line */}
+          {showCumsum && linePoints.length ? (
+            <path
+              d={linePoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ")}
+              fill="none"
+              stroke="#f97316"
+              strokeWidth="3"
+              strokeLinecap="round"
             />
-            <text
-              x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
-              y={pad + 28}
-              fontSize="12"
-              fill="#e5e7eb"
-            >
-              {hover.date}
-            </text>
-            <text
-              x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
-              y={pad + 48}
-              fontSize="12"
-              fill="#e5e7eb"
-            >
-              {formatInt(hover.count)}건 · 누적{" "}
-              {formatInt(linePoints[hoverIdx] ? linePoints[hoverIdx].total : 0)}건
-            </text>
-          </g>
-        ) : null}
-      </svg>
+          ) : null}
+
+          {showCumsum &&
+            linePoints.map((p, i) => (
+              <circle
+                key={p.date + i}
+                cx={p.x}
+                cy={p.y}
+                r={i === hoverIdx ? 5 : 3}
+                fill={i === hoverIdx ? "#fbbf24" : "#f97316"}
+                stroke="rgba(15,23,42,0.25)"
+                strokeWidth="1"
+              />
+            ))}
+
+          {/* x ticks */}
+          {xTicks.map((t, idx) => (
+            <g key={idx} transform={`translate(${t.x},${height - bottomPad})`}>
+              <line y1="0" y2="6" stroke="rgba(15,23,42,0.25)" />
+              <text
+                y="18"
+                textAnchor="end"
+                fontSize="11"
+                fill="rgba(15,23,42,0.7)"
+                transform="rotate(-45)"
+              >
+                {t.label}
+              </text>
+            </g>
+          ))}
+
+          {/* vertical markers */}
+          {markers.map((m, idx) => (
+            <g key={`marker-${idx}`} pointerEvents="none">
+              <line
+                x1={m.x}
+                x2={m.x}
+                y1={topPad}
+                y2={height - bottomPad}
+                stroke="#64748b"
+                strokeWidth="1"
+                strokeDasharray="4 2"
+                opacity="0.5"
+              />
+              <text
+                x={m.x}
+                y={topPad - 6}
+                textAnchor="middle"
+                fontSize="10"
+                fontWeight="600"
+                fill="#64748b"
+              >
+                {m.label}
+              </text>
+            </g>
+          ))}
+
+          {hover && (
+            <g>
+              <rect
+                x={Math.min(effectiveWidth - rightPad - 230, Math.max(leftPad, hover.x + 10))}
+                y={topPad - 20}
+                width="220"
+                height={showCumsum ? 120 : 96}
+                rx="12"
+                fill="rgba(15,23,42,0.95)"
+                stroke="rgba(255,255,255,0.15)"
+              />
+              <text
+                x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
+                y={topPad + 5}
+                fontSize="12"
+                fontWeight="bold"
+                fill="#ffffff"
+              >
+                {hover.date}
+              </text>
+
+              {STATUSES.map((s, si) => {
+                const val = (hover.status && hover.status[s]) || 0;
+                return (
+                  <text
+                    key={s}
+                    x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
+                    y={topPad + 25 + si * 16}
+                    fontSize="11"
+                    fill={COLORS[s]}
+                  >
+                    ● {s}: {formatInt(val)}건
+                  </text>
+                );
+              })}
+
+              <text
+                x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
+                y={topPad + 25 + STATUSES.length * 16}
+                fontSize="11"
+                fill="#e5e7eb"
+                fontWeight="bold"
+              >
+                합계: {formatInt(hover.count)}건
+              </text>
+
+              {showCumsum && linePoints[hoverIdx] && (
+                <text
+                  x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
+                  y={topPad + 45 + STATUSES.length * 16}
+                  fontSize="11"
+                  fill="#f97316"
+                >
+                  누적: {formatInt(linePoints[hoverIdx].total)}건
+                </text>
+              )}
+            </g>
+          )}
+        </svg>
+      </div>
+
+      <div className="mt-4 flex flex-wrap justify-center gap-6">
+        {STATUSES.map((s) => (
+          <div key={s} className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full" style={{ backgroundColor: COLORS[s] }} />
+            <span className="text-xs font-medium text-slate-600">{s}</span>
+          </div>
+        ))}
+        {showCumsum && (
+          <div className="flex items-center gap-2">
+            <div className="h-0.5 w-6 bg-[#f97316]" />
+            <span className="text-xs font-medium text-slate-600">누적 건수</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
