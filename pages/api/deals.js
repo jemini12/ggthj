@@ -32,36 +32,66 @@ function sanitize(input, allowList) {
 export default async function handler(req, res) {
   try {
     const nowYear = new Date().getFullYear();
+    const isRolling = req.query.rolling12 === "1";
     const searchYear = parseYear(req.query.year) || nowYear;
     const gubun = sanitize(req.query.gubun, ["TRDE", "LFMT", "LFMT_Y", "LFMT_M"]) || "TRDE";
-  const bdsGbn = sanitize(req.query.bdsGbn, ["ALL", "01", "02", "03", "04", "05", "06"]) || "01"; // default 아파트
-  const sggCd = req.query.sggCd ? String(req.query.sggCd).trim() : "";
+    const bdsGbn = sanitize(req.query.bdsGbn, ["ALL", "01", "02", "03", "04", "05", "06"]) || "01";
+    const sggCd = req.query.sggCd ? String(req.query.sggCd).trim() : "";
 
-  const cacheKey = JSON.stringify({ searchYear, gubun, bdsGbn, sggCd });
-  const cached = getCache(cacheKey);
-  if (cached) {
-    console.log(JSON.stringify({ level: "info", event: "deals.cache.hit", params: { searchYear, gubun, bdsGbn, sggCd } }));
-    res.status(200).json(cached);
-    return;
-  }
+    const cacheKey = JSON.stringify({ searchYear, gubun, bdsGbn, sggCd, isRolling });
+    const cached = getCache(cacheKey);
+    if (cached) {
+      res.status(200).json(cached);
+      return;
+    }
 
-  const data = await fetchDealMonthList({
-    searchYear,
-    gubun,
-    bdsGbn,
-    sggCd,
-    groupDate: "gubunYear",
-  });
+    let finalPoints = [];
 
-  const payload = {
-    params: { searchYear, gubun, bdsGbn, sggCd },
-    monthList: data.monthList || [],
-    sggList: data.sggList || [],
-  };
-  setCache(cacheKey, payload);
+    if (isRolling) {
+      // Fetch last 12 months (current year + previous year)
+      const [prevYearData, currYearData] = await Promise.all([
+        fetchDealMonthList({ searchYear: nowYear - 1, gubun, bdsGbn, sggCd, groupDate: "gubunYear" }),
+        fetchDealMonthList({ searchYear: nowYear, gubun, bdsGbn, sggCd, groupDate: "gubunYear" })
+      ]).catch(() => [null, null]);
 
-  console.log(JSON.stringify({ level: "info", event: "deals.cache.miss", params: { searchYear, gubun, bdsGbn, sggCd } }));
-  res.status(200).json(payload);
+      const getRow = (data) => (data && data.sggList && data.sggList.length ? data.sggList[0] : (data && data.monthList && data.monthList.length ? data.monthList[0] : null));
+      const pr = getRow(prevYearData);
+      const cr = getRow(currYearData);
+
+      const all = [];
+      // Prev year
+      for (let m = 1; m <= 12; m++) {
+        const val = pr ? (parseInt(String(pr[`a${m}`] || "0").replace(/,/g, ""), 10) || 0) : 0;
+        all.push({ date: `${nowYear - 1}-${String(m).padStart(2, "0")}-01`, count: val });
+      }
+      // Curr year
+      for (let m = 1; m <= 12; m++) {
+        const val = cr ? (parseInt(String(cr[`a${m}`] || "0").replace(/,/g, ""), 10) || 0) : 0;
+        all.push({ date: `${nowYear}-${String(m).padStart(2, "0")}-01`, count: val });
+      }
+
+      // Slice last 12 months based on current month
+      const nowMonth = new Date().getMonth() + 1; // 1-12
+      finalPoints = all.slice(nowMonth, nowMonth + 12);
+    } else {
+      const data = await fetchDealMonthList({ searchYear, gubun, bdsGbn, sggCd, groupDate: "gubunYear" });
+      const getRow = (data) => (data.sggList && data.sggList.length ? data.sggList[0] : (data.monthList && data.monthList.length ? data.monthList[0] : null));
+      const row = getRow(data);
+      if (row) {
+        for (let m = 1; m <= 12; m++) {
+          const val = parseInt(String(row[`a${m}`] || "0").replace(/,/g, ""), 10) || 0;
+          finalPoints.push({ date: `${searchYear}-${String(m).padStart(2, "0")}-01`, count: val });
+        }
+      }
+    }
+
+    const payload = {
+      params: { searchYear, gubun, bdsGbn, sggCd, isRolling },
+      points: finalPoints
+    };
+    setCache(cacheKey, payload);
+
+    res.status(200).json(payload);
   } catch (err) {
     const msg = err && err.message ? err.message : String(err);
     res.status(500).json({ error: msg, detail: err.detail || null });

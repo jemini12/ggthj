@@ -294,28 +294,11 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
     (async () => {
       const start = typeof performance !== "undefined" ? performance.now() : Date.now();
       try {
-        const y = new Date().getFullYear();
         const data = await fetchJson(
-          `/api/deals?year=${y}&bdsGbn=01&gubun=TRDE&sggCd=${encodeURIComponent(sggMap[city])}`
+          `/api/deals?rolling12=1&bdsGbn=01&gubun=TRDE&sggCd=${encodeURIComponent(sggMap[city])}`
         );
         if (!mounted) return;
-        const row =
-          (data.sggList && data.sggList.length && data.sggList[0]) ||
-          (data.monthList && data.monthList.length && data.monthList[0]) ||
-          null;
-        if (!row) {
-          setDealPoints([]);
-          throw new Error("거래량 데이터가 없습니다.");
-        }
-        const pts = [];
-        for (let i = 1; i <= 12; i++) {
-          const key = `a${i}`;
-          const raw = row[key] || "0";
-          const n = typeof raw === "string" ? parseInt(raw.replace(/,/g, ""), 10) : Number(raw) || 0;
-          const mm = String(i).padStart(2, "0");
-          pts.push({ date: `${y}-${mm}-01`, count: n });
-        }
-        setDealPoints(pts);
+        setDealPoints(data.points || []);
         const end = typeof performance !== "undefined" ? performance.now() : Date.now();
         setFetchTimings((prev) => ({
           ...prev,
@@ -352,10 +335,17 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
       const start = typeof performance !== "undefined" ? performance.now() : Date.now();
       try {
         const now = new Date();
-        const y = now.getFullYear();
+        const endYear = now.getFullYear();
+        const endMonth = now.getMonth() + 1;
+
+        // Rolling 12 months
+        const start = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+        const startYear = start.getFullYear();
+        const startMonth = start.getMonth() + 1;
+
         const url = `/api/offers?area=${encodeURIComponent(
           sggMap[city]
-        )}&deal=123&mode=2&sY=${y}&sM=1&eY=${y}&eM=12`;
+        )}&deal=123&mode=2&sY=${startYear}&sM=${startMonth}&eY=${endYear}&eM=${endMonth}`;
         const data = await fetchJson(url);
         if (!mounted) return;
         const vm = [];

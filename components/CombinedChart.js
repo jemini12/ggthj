@@ -43,9 +43,9 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
 
   const effectiveWidth = useMemo(() => {
     const minWidth = 720;
-    const bars = points && points.length ? points.length * 14 : 0;
-    return Math.max(width, leftPad + rightPad + bars, minWidth);
-  }, [points, width, leftPad, rightPad]);
+    // Remove forced expansion based on bar count to prevent horizontal scrolling
+    return Math.max(width, minWidth);
+  }, [width]);
 
   const { barGroups, linePoints, countTicks, cumTicks, xTicks, markers, maxCount, maxCum } = useMemo(() => {
     if (!points || points.length === 0) {
@@ -146,10 +146,9 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
       <div className="overflow-x-auto">
         <svg
           viewBox={`0 0 ${effectiveWidth} ${height}`}
-          width={effectiveWidth}
+          width="100%"
           height={height}
           className="block"
-          style={{ minWidth: effectiveWidth }}
         >
           <rect x="0" y="0" width={effectiveWidth} height={height} fill="#ffffff" />
 
