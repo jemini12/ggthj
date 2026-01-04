@@ -389,14 +389,14 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100">
-      <div className="mx-auto max-w-6xl px-4 py-10">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">경기 토지거래계약허가 건수</h1>
+      <div className="mx-auto max-w-6xl px-4 py-6 md:py-10">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">경기 토지거래계약허가 건수</h1>
           <p className="mt-2 text-sm text-slate-600">새올 민원 접수일자를 기준으로 일별 건수를 집계합니다.</p>
           <p className="mt-1 text-xs text-slate-500">😓 과천과 안양은 지원하지 않습니다.</p>
         </div>
 
-        <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm md:flex-row md:items-end md:justify-between">
+        <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm md:flex-row md:items-end md:justify-between md:p-5">
           <div className="flex flex-col gap-2">
             <div className="text-xs font-medium text-slate-500">지역 선택</div>
             <div className="relative w-full md:w-72">
@@ -530,7 +530,7 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
           </div>
         ) : null}
 
-        <div className="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm md:p-5">
           <div className="mb-3 text-sm font-medium text-slate-700">
             {labels[city] ? `${labels[city]} 토지거래계약허가 접수 건수` : "토지거래계약허가 접수 건수"}
           </div>
@@ -553,7 +553,7 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
         </div>
 
         {Object.keys(sggMap || {}).length ? (
-          <div className="mt-8 rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm">
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm md:mt-8 md:p-5">
             <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div className="text-sm font-medium text-slate-700">
                 {labels[city] ? `${labels[city]} 부동산 거래량 (아파트, 계약일 기준)` : "부동산 거래량 (아파트, 계약일 기준)"}
@@ -583,7 +583,7 @@ export default function Home({ initialCities = [], initialLabels = {}, initialSg
         ) : null}
 
         {Object.keys(sggMap || {}).length ? (
-          <div className="mt-8 rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm">
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm md:mt-8 md:p-5">
             <div className="mb-3 text-sm font-medium text-slate-700">
               {labels[city] ? `${labels[city]} 매매 매물 건수` : "매매 매물 건수"}
             </div>

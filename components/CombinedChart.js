@@ -41,15 +41,15 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
     "취하": "#ef4444",
   };
 
-  const effectiveWidth = useMemo(() => {
+  const [effectiveWidth, isMobile] = useMemo(() => {
     const minWidth = 720;
-    // Remove forced expansion based on bar count to prevent horizontal scrolling
-    return Math.max(width, minWidth);
+    const currentIsMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    return [Math.max(width, minWidth), currentIsMobile];
   }, [width]);
 
-  const { barGroups, linePoints, countTicks, cumTicks, xTicks, markers, maxCount, maxCum } = useMemo(() => {
+  const { barGroups, linePoints, countTicks, cumTicks, xTicks, markers, periodAverages, maxCount, maxCum } = useMemo(() => {
     if (!points || points.length === 0) {
-      return { barGroups: [], linePoints: [], countTicks: [], cumTicks: [], xTicks: [], markers: [], maxCount: 0, maxCum: 0 };
+      return { barGroups: [], linePoints: [], countTicks: [], cumTicks: [], xTicks: [], markers: [], periodAverages: [], maxCount: 0, maxCum: 0 };
     }
 
     const plotW = effectiveWidth - leftPad - rightPad;
@@ -121,12 +121,15 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
       }
     });
 
-    // Vertical markers aligned to the LATEST date in the chart
+    // Vertical markers and averages aligned to the LATEST date in the chart
     const markers = [];
+    const periodAverages = []; // [{ label: "Avg: X.X", mx: center_x }]
     if (showMarkers && points.length > 0) {
       const latestDateStr = points[points.length - 1].date;
       const latestDate = parseDate(latestDateStr);
-      [10, 20, 30].forEach((days) => {
+
+      const markerDays = [10, 20, 30, 40];
+      markerDays.forEach((days) => {
         const target = new Date(latestDate.getTime() - days * 24 * 60 * 60 * 1000);
         const targetYmd = target.toISOString().split("T")[0];
         const match = barGroups.find((b) => b.date === targetYmd);
@@ -134,21 +137,71 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
           markers.push({ x: match.x + match.w / 2, label: `-${days}일` });
         }
       });
+
+      // Periods: [0, 10], [10, 20], [20, 30], [30, 40]
+      const periods = [
+        { start: 0, end: 10 },
+        { start: 10, end: 20 },
+        { start: 20, end: 30 },
+        { start: 30, end: 40 },
+      ];
+
+      periods.forEach((p) => {
+        const startMs = latestDate.getTime() - p.end * 24 * 60 * 60 * 1000;
+        const endMs = latestDate.getTime() - p.start * 24 * 60 * 60 * 1000;
+
+        const periodPoints = barGroups.filter((b) => {
+          const dt = parseDate(b.date);
+          const t = dt.getTime();
+          return t > startMs && t <= endMs;
+        });
+
+        if (periodPoints.length === 0) return;
+
+        let resolvedSum = 0;
+        let processingSum = 0;
+        let workdayCount = 0;
+
+        periodPoints.forEach((bp) => {
+          const dt = parseDate(bp.date);
+          const day = dt.getUTCDay(); // 0:Sun, 1:Mon, ..., 6:Sat
+          const isWorkday = day >= 1 && day <= 5;
+          const resolved = (bp.status && bp.status["해결"]) || 0;
+          const processing = (bp.status && bp.status["처리중"]) || 0;
+
+          if (isWorkday && (resolved > 0 || processing > 0)) {
+            resolvedSum += resolved;
+            processingSum += processing;
+            workdayCount++;
+          }
+        });
+
+        if (workdayCount > 0) {
+          const rAvg = resolvedSum / workdayCount;
+          const pAvg = processingSum / workdayCount;
+          // Find center X for the period text
+          const first = periodPoints[0];
+          const last = periodPoints[periodPoints.length - 1];
+          const centerX = (first.x + last.x + last.w) / 2;
+          periodAverages.push({ pAvg: pAvg.toFixed(1), rAvg: rAvg.toFixed(1), x: centerX });
+        }
+      });
     }
 
-    return { barGroups, linePoints, countTicks, cumTicks, xTicks, markers, maxCount: countScaleMax, maxCum: cumScaleMax };
+    return { barGroups, linePoints, countTicks, cumTicks, xTicks, markers, periodAverages, maxCount: countScaleMax, maxCum: cumScaleMax };
   }, [points, width, height, pad, showCumsum, showMarkers, showStatus, effectiveWidth, topPad, bottomPad, leftPad, rightPad]);
 
   const hover = hoverIdx != null ? barGroups[hoverIdx] : null;
 
   return (
-    <div className="w-full">
-      <div className="overflow-x-auto">
+    <div className="w-full" onClick={() => setHoverIdx(null)}>
+      <div className="overflow-x-auto overflow-y-hidden">
         <svg
           viewBox={`0 0 ${effectiveWidth} ${height}`}
-          width="100%"
+          width={effectiveWidth}
           height={height}
           className="block"
+          style={{ touchAction: 'pan-x' }}
         >
           <rect x="0" y="0" width={effectiveWidth} height={height} fill="#ffffff" />
 
@@ -287,10 +340,47 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
             </g>
           ))}
 
-          {hover && (
-            <g>
+          {/* period averages */}
+          {periodAverages.map((pa, idx) => (
+            <g key={`avg-${idx}`} pointerEvents="none">
               <rect
-                x={Math.min(effectiveWidth - rightPad - 230, Math.max(leftPad, hover.x + 10))}
+                x={pa.x - 43}
+                y={topPad + 5}
+                width="86"
+                height="34"
+                rx="8"
+                fill="rgba(255,255,255,0.92)"
+                stroke="rgba(15,23,42,0.1)"
+                strokeWidth="1"
+                opacity="1"
+              />
+              <text
+                x={pa.x - 36}
+                y={topPad + 18}
+                textAnchor="start"
+                fontSize="10"
+                fontWeight="700"
+                fill="#3b82f6"
+              >
+                처리중: {pa.pAvg}
+              </text>
+              <text
+                x={pa.x - 36}
+                y={topPad + 31}
+                textAnchor="start"
+                fontSize="10"
+                fontWeight="700"
+                fill="#10b981"
+              >
+                해결: {pa.rAvg}
+              </text>
+            </g>
+          ))}
+
+          {hover && (
+            <g pointerEvents="none">
+              <rect
+                x={Math.min(effectiveWidth - 230, Math.max(leftPad, hover.x - 110))}
                 y={topPad - 20}
                 width="220"
                 height={showCumsum ? 120 : 96}
@@ -299,7 +389,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
                 stroke="rgba(255,255,255,0.15)"
               />
               <text
-                x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
+                x={Math.min(effectiveWidth - 220, Math.max(leftPad + 12, hover.x - 98))}
                 y={topPad + 5}
                 fontSize="12"
                 fontWeight="bold"
@@ -314,7 +404,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
                   return (
                     <text
                       key={s}
-                      x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
+                      x={Math.min(effectiveWidth - 220, Math.max(leftPad + 12, hover.x - 98))}
                       y={topPad + 25 + si * 16}
                       fontSize="11"
                       fill={COLORS[s]}
@@ -325,7 +415,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
                 })
               ) : (
                 <text
-                  x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
+                  x={Math.min(effectiveWidth - 220, Math.max(leftPad + 12, hover.x - 98))}
                   y={topPad + 25}
                   fontSize="11"
                   fill="#94a3b8"
@@ -335,7 +425,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
               )}
 
               <text
-                x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
+                x={Math.min(effectiveWidth - 220, Math.max(leftPad + 12, hover.x - 98))}
                 y={topPad + 25 + (showStatus ? STATUSES.length * 16 : 20)}
                 fontSize="11"
                 fill="#e5e7eb"
@@ -346,7 +436,7 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
 
               {showCumsum && linePoints[hoverIdx] && (
                 <text
-                  x={Math.min(effectiveWidth - rightPad - 220, Math.max(leftPad + 12, hover.x + 22))}
+                  x={Math.min(effectiveWidth - 220, Math.max(leftPad + 12, hover.x - 98))}
                   y={topPad + (showStatus ? 45 + STATUSES.length * 16 : 50)}
                   fontSize="11"
                   fill="#f97316"
