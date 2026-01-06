@@ -117,6 +117,14 @@ export default function StackedChart({ series, width = 1000, height = 380, pad =
               opacity={hover === i ? 1 : 0.9}
               onMouseEnter={() => setHover(i)}
               onMouseLeave={() => setHover(null)}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+                setHover(i);
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setHover(i);
+              }}
             />
           ))}
 

@@ -249,6 +249,14 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
               key={group.date + i}
               onMouseEnter={() => setHoverIdx(i)}
               onMouseLeave={() => setHoverIdx(null)}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+                setHoverIdx(i);
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setHoverIdx(i);
+              }}
               className="cursor-pointer"
             >
               {group.stacks.map((s, si) => (
@@ -344,9 +352,9 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
           {periodAverages.map((pa, idx) => (
             <g key={`avg-${idx}`} pointerEvents="none">
               <rect
-                x={pa.x - 43}
+                x={pa.x - 50}
                 y={topPad + 5}
-                width="86"
+                width="100"
                 height="34"
                 rx="8"
                 fill="rgba(255,255,255,0.92)"
@@ -355,24 +363,24 @@ export default function CombinedChart({ points, width = 1000, height = 380, pad 
                 opacity="1"
               />
               <text
-                x={pa.x - 36}
+                x={pa.x - 42}
                 y={topPad + 18}
                 textAnchor="start"
                 fontSize="10"
                 fontWeight="700"
                 fill="#3b82f6"
               >
-                처리중: {pa.pAvg}
+                처리중: {pa.pAvg}건/일
               </text>
               <text
-                x={pa.x - 36}
+                x={pa.x - 42}
                 y={topPad + 31}
                 textAnchor="start"
                 fontSize="10"
                 fontWeight="700"
                 fill="#10b981"
               >
-                해결: {pa.rAvg}
+                해결: {pa.rAvg}건/일
               </text>
             </g>
           ))}
